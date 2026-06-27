@@ -19,6 +19,9 @@ import {
 import type { EstadoPedido, Pedido, PedidoItem } from '@/types';
 import { createClient } from '@/lib/supabase/client';
 import { useAdminFeedback } from '@/components/admin/AdminFeedback';
+import { Pagination } from '@/components/admin/Pagination';
+
+const PAGE_SIZE = 10;
 
 type FilterTab = 'todos' | EstadoPedido;
 
@@ -35,6 +38,7 @@ export default function AdminPedidosPage() {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<FilterTab>('todos');
+  const [page, setPage] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [updateState, setUpdateState] = useState<Record<string, EstadoPedido>>({});
   const [updateNotes, setUpdateNotes] = useState<Record<string, string>>({});
@@ -69,6 +73,16 @@ export default function AdminPedidosPage() {
     if (activeFilter === 'todos') return pedidos;
     return pedidos.filter((p) => p.estado === activeFilter);
   }, [activeFilter, pedidos]);
+
+  function handleFilterChange(value: FilterTab) {
+    setActiveFilter(value);
+    setPage(1); // Volver a la primera página al cambiar de filtro.
+  }
+
+  const pagedPedidos = useMemo(
+    () => filteredPedidos.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filteredPedidos, page]
+  );
 
   function toggleExpand(id: string) {
     setExpandedId((prev) => (prev === id ? null : id));
@@ -181,7 +195,7 @@ export default function AdminPedidosPage() {
           return (
             <button
               key={tab.value}
-              onClick={() => setActiveFilter(tab.value)}
+              onClick={() => handleFilterChange(tab.value)}
               className={cn(
                 'px-4 py-2 rounded-md text-sm font-medium transition-colors',
                 activeFilter === tab.value
@@ -229,7 +243,7 @@ export default function AdminPedidosPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-kdb-border">
-            {filteredPedidos.map((pedido) => {
+            {pagedPedidos.map((pedido) => {
               const color = ESTADO_COLORS[pedido.estado];
               const isExpanded = expandedId === pedido.id;
 
@@ -425,6 +439,14 @@ export default function AdminPedidosPage() {
           </div>
         )}
       </div>
+
+      <Pagination
+        currentPage={page}
+        totalItems={filteredPedidos.length}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+        itemLabel="pedido"
+      />
     </div>
   );
 }

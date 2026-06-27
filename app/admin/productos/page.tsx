@@ -16,12 +16,16 @@ import { cn, formatPrice, PLACEHOLDER_IMAGES } from '@/lib/utils';
 import type { Producto } from '@/types';
 import { createClient } from '@/lib/supabase/client';
 import { useAdminFeedback } from '@/components/admin/AdminFeedback';
+import { Pagination } from '@/components/admin/Pagination';
+
+const PAGE_SIZE = 10;
 
 export default function AdminProductosPage() {
   const { toast, confirm } = useAdminFeedback();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
 
   const loadProductos = useCallback(async () => {
     try {
@@ -57,6 +61,16 @@ export default function AdminProductosPage() {
         (p.categoria?.nombre && p.categoria.nombre.toLowerCase().includes(term))
     );
   }, [search, productos]);
+
+  function handleSearchChange(value: string) {
+    setSearch(value);
+    setPage(1); // Volver a la primera página al cambiar la búsqueda.
+  }
+
+  const pagedProductos = useMemo(
+    () => filteredProductos.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filteredProductos, page]
+  );
 
   async function toggleDisponible(id: string, currentVal: boolean) {
     try {
@@ -153,7 +167,7 @@ export default function AdminProductosPage() {
           type="text"
           placeholder="Buscar productos..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           className="w-full pl-10 pr-4 py-3 bg-kdb-card border border-kdb-border rounded-md text-text-primary placeholder-text-muted focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors"
         />
       </div>
@@ -193,7 +207,7 @@ export default function AdminProductosPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-kdb-border">
-            {filteredProductos.map((producto) => (
+            {pagedProductos.map((producto) => (
               <tr
                 key={producto.id}
                 className="hover:bg-kdb-elevated transition-colors"
@@ -324,6 +338,14 @@ export default function AdminProductosPage() {
           </div>
         )}
       </div>
+
+      <Pagination
+        currentPage={page}
+        totalItems={filteredProductos.length}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+        itemLabel="producto"
+      />
     </div>
   );
 }
