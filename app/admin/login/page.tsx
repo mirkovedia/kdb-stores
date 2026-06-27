@@ -39,7 +39,11 @@ export default function AdminLoginPage() {
         return;
       }
 
-      router.push('/admin');
+      // Honra ?redirect= pero solo rutas internas del admin (evita open redirect).
+      const param = new URLSearchParams(window.location.search).get('redirect');
+      const dest = param && param.startsWith('/admin') ? param : '/admin';
+      router.push(dest);
+      router.refresh();
     } catch {
       setLoginError('Error al iniciar sesión. Intenta de nuevo.');
     } finally {
