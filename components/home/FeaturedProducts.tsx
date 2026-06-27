@@ -4,7 +4,6 @@ import { ArrowRight } from 'lucide-react';
 import { SectionTitle } from '@/components/ui/SectionTitle';
 import { GoldButton } from '@/components/ui/GoldButton';
 import { ProductCard } from '@/components/catalogo/ProductCard';
-import type { Producto } from '@/types';
 import { useProducts } from '@/hooks/useProducts';
 
 

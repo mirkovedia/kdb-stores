@@ -182,8 +182,8 @@ export default function CarritoPage() {
                       href={`/producto/${item.slug}`}
                       className="relative w-20 h-20 md:w-24 md:h-24 shrink-0 bg-kdb-elevated rounded-sm overflow-hidden"
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       {item.imagen ? (
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img src={item.imagen} alt={item.nombre} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-text-muted">

@@ -18,15 +18,16 @@ const CATEGORIES = [
   { value: 'accesorios', label: 'Accesorios' },
 ];
 
-const BRANDS = [
-  'Nike',
-  'Jordan',
-  'Supreme',
-  'Bape',
-  'Stüssy',
-  'New Balance',
-  'Adidas',
-  'Off-White',
+// Cada marca filtra por su `slug` (lo que espera la API), mostrando el `name`.
+const BRANDS: { name: string; slug: string }[] = [
+  { name: 'Nike', slug: 'nike' },
+  { name: 'Jordan', slug: 'jordan' },
+  { name: 'Supreme', slug: 'supreme' },
+  { name: 'Bape', slug: 'bape' },
+  { name: 'Stüssy', slug: 'stussy' },
+  { name: 'New Balance', slug: 'new-balance' },
+  { name: 'Adidas', slug: 'adidas' },
+  { name: 'Off-White', slug: 'off-white' },
 ];
 
 const SHOE_SIZES = ['35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46'];
@@ -42,10 +43,10 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
   const [brandDropdownOpen, setBrandDropdownOpen] = useState(false);
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const [showSizes, setShowSizes] = useState(false);
-  const [selectedBrands, setSelectedBrands] = useState<string[]>(
-    filters.marca ? filters.marca.split(',') : []
-  );
   const [searchValue, setSearchValue] = useState(filters.busqueda ?? '');
+
+  // Las marcas seleccionadas se derivan de la URL (sin estado duplicado).
+  const selectedBrands = filters.marca ? filters.marca.split(',') : [];
 
   const brandRef = useRef<HTMLDivElement>(null);
   const sortRef = useRef<HTMLDivElement>(null);
@@ -61,14 +62,11 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchValue]);
 
-  // Mantiene el input/marcas en sync cuando los filtros cambian desde fuera (ej. URL, limpiar)
+  // Mantiene el input en sync cuando la búsqueda cambia desde fuera (URL, limpiar)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSearchValue(filters.busqueda ?? '');
   }, [filters.busqueda]);
-
-  useEffect(() => {
-    setSelectedBrands(filters.marca ? filters.marca.split(',') : []);
-  }, [filters.marca]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -87,11 +85,10 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
     onChange({ ...filters, ...partial });
   }
 
-  function toggleBrand(brand: string) {
-    const next = selectedBrands.includes(brand)
-      ? selectedBrands.filter((b) => b !== brand)
-      : [...selectedBrands, brand];
-    setSelectedBrands(next);
+  function toggleBrand(slug: string) {
+    const next = selectedBrands.includes(slug)
+      ? selectedBrands.filter((b) => b !== slug)
+      : [...selectedBrands, slug];
     updateFilters({ marca: next.join(',') || undefined });
   }
 
@@ -178,11 +175,11 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
                 <div className="p-2 space-y-1">
                   {BRANDS.map((brand) => (
                     <button
-                      key={brand}
-                      onClick={() => toggleBrand(brand)}
+                      key={brand.slug}
+                      onClick={() => toggleBrand(brand.slug)}
                       className={cn(
                         'w-full flex items-center gap-2 px-3 py-2 text-sm rounded-sm transition-colors text-left',
-                        selectedBrands.includes(brand)
+                        selectedBrands.includes(brand.slug)
                           ? 'bg-gold/10 text-gold'
                           : 'text-text-secondary hover:bg-kdb-card hover:text-text-primary'
                       )}
@@ -190,24 +187,21 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
                       <div
                         className={cn(
                           'w-4 h-4 border rounded-sm flex items-center justify-center text-[10px]',
-                          selectedBrands.includes(brand)
+                          selectedBrands.includes(brand.slug)
                             ? 'bg-gold border-gold text-black'
                             : 'border-kdb-border'
                         )}
                       >
-                        {selectedBrands.includes(brand) && '✓'}
+                        {selectedBrands.includes(brand.slug) && '✓'}
                       </div>
-                      {brand}
+                      {brand.name}
                     </button>
                   ))}
                 </div>
                 {selectedBrands.length > 0 && (
                   <div className="border-t border-kdb-border p-2">
                     <button
-                      onClick={() => {
-                        setSelectedBrands([]);
-                        updateFilters({ marca: undefined });
-                      }}
+                      onClick={() => updateFilters({ marca: undefined })}
                       className="w-full text-xs text-text-muted hover:text-danger transition-colors py-1"
                     >
                       Limpiar marcas
@@ -299,7 +293,6 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
           {(filters.categoria || filters.marca || filters.talla || filters.busqueda || filters.soloDisponibles || (filters.ordenar && filters.ordenar !== 'reciente')) && (
             <button
               onClick={() => {
-                setSelectedBrands([]);
                 setSearchValue('');
                 onChange({});
               }}

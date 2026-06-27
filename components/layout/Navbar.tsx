@@ -91,6 +91,11 @@ export function Navbar() {
     };
   }, [mobileOpen]);
 
+  // El panel de admin tiene su propio layout: ocultar el navbar público.
+  if (pathname.startsWith('/admin')) {
+    return null;
+  }
+
   return (
     <>
       <header

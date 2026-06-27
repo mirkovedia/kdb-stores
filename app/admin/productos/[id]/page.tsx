@@ -42,7 +42,6 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
     resolver: zodResolver(productoSchema),
   });
 
-  const nombreValue = watch('nombre');
   const tallasValue = watch('tallas_disponibles') || [];
   const esPedido = watch('es_pedido');
   const disponible = watch('disponible');

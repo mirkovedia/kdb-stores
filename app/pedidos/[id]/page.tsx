@@ -42,6 +42,8 @@ export default function OrderTrackingPage({ params }: TrackingPageProps) {
   );
 
   useEffect(() => {
+    // Carga inicial del pedido al montar (patrón estándar de fetch en efecto).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (orderId) loadOrder();
   }, [orderId, loadOrder]);
 

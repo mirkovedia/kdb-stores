@@ -179,7 +179,7 @@ export function OrderTracker({ pedido, historial, items = [] }: OrderTrackerProp
             {/* Background Line */}
             <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-kdb-border" />
 
-            {steps.map((step, index) => {
+            {steps.map((step) => {
               const stepIndexInGlobal = getEstadoIndex(step.value);
               const isCompleted = stepIndexInGlobal < currentStatusIndex || (stepIndexInGlobal === currentStatusIndex && pedido.estado !== 'cancelado');
               const isCurrent = stepIndexInGlobal === currentStatusIndex;

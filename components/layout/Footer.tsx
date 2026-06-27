@@ -1,6 +1,9 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { Instagram, MessageCircle, Music2, Mail, MapPin, Users } from 'lucide-react';
 import { getWhatsAppLink, getInstagramUrl } from '@/lib/utils';
 
@@ -37,6 +40,13 @@ const SOCIAL_LINKS = [
 const PAYMENT_METHODS = ['Yape', 'Plin', 'Transferencia'] as const;
 
 export function Footer() {
+  const pathname = usePathname();
+
+  // El panel de admin tiene su propio layout: ocultar el footer público.
+  if (pathname.startsWith('/admin')) {
+    return null;
+  }
+
   return (
     <footer className="border-t border-gold/20 bg-kdb-card">
       <div className="container-kdb py-12 md:py-16">

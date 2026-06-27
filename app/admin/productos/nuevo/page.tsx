@@ -62,7 +62,6 @@ export default function NuevoProductoPage() {
     },
   });
 
-  const nombreValue = watch('nombre');
   const tallasValue = watch('tallas_disponibles') || [];
   const esPedido = watch('es_pedido');
   const disponible = watch('disponible');

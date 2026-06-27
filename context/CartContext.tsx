@@ -37,6 +37,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
+      // Hidratación desde localStorage: setState en mount es intencional y necesario.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (raw) setItems(JSON.parse(raw));
     } catch (err) {
       console.error('Error reading cart from storage:', err);
