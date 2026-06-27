@@ -10,7 +10,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { cn, formatPrice, ESTADOS_PEDIDO } from '@/lib/utils';
-import type { EstadoPedido, Pedido } from '@/types';
+import type { EstadoPedido, Pedido, PedidoItem } from '@/types';
 import { createClient } from '@/lib/supabase/client';
 
 type FilterTab = 'todos' | EstadoPedido;
@@ -53,6 +53,7 @@ export default function AdminPedidosPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [updateState, setUpdateState] = useState<Record<string, EstadoPedido>>({});
   const [updateNotes, setUpdateNotes] = useState<Record<string, string>>({});
+  const [itemsMap, setItemsMap] = useState<Record<string, PedidoItem[]>>({});
 
   const loadPedidos = useCallback(async () => {
     try {
@@ -86,6 +87,18 @@ export default function AdminPedidosPage() {
 
   function toggleExpand(id: string) {
     setExpandedId((prev) => (prev === id ? null : id));
+    // Carga perezosa de los ítems del pedido la primera vez que se expande
+    if (!itemsMap[id]) {
+      const supabase = createClient();
+      supabase
+        .from('pedido_items')
+        .select('*')
+        .eq('pedido_id', id)
+        .order('created_at', { ascending: true })
+        .then(({ data }) => {
+          setItemsMap((prev) => ({ ...prev, [id]: data || [] }));
+        });
+    }
   }
 
   async function handleStateUpdate(pedidoId: string) {
@@ -330,6 +343,24 @@ export default function AdminPedidosPage() {
                                 </div>
                               )}
                             </div>
+
+                            {/* Ítems del pedido (multi-producto) */}
+                            {itemsMap[pedido.id] && itemsMap[pedido.id].length > 1 && (
+                              <div className="pt-2 border-t border-kdb-border">
+                                <span className="text-text-muted text-sm">Productos:</span>
+                                <ul className="mt-1 space-y-1">
+                                  {itemsMap[pedido.id].map((it) => (
+                                    <li key={it.id} className="flex justify-between text-sm">
+                                      <span className="text-text-secondary truncate pr-2">
+                                        {it.cantidad}× {it.producto_nombre}
+                                        {it.talla ? ` (${it.talla})` : ''}
+                                      </span>
+                                      <span className="text-text-primary shrink-0">{formatPrice(it.subtotal)}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
 
                             {/* WhatsApp link */}
                             <a

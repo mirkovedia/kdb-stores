@@ -2,15 +2,17 @@
 
 import { motion } from 'framer-motion';
 import { ESTADOS_PEDIDO, getEstadoIndex, getWhatsAppLink, formatPrice } from '@/lib/utils';
-import type { Pedido, PedidoHistorial } from '@/types';
+import type { Pedido, PedidoHistorial, PedidoItem } from '@/types';
 import { Check, MessageCircle, AlertTriangle, Calendar, ShoppingBag, User, Ruler } from 'lucide-react';
 
 interface OrderTrackerProps {
   pedido: Pedido;
   historial: PedidoHistorial[];
+  items?: PedidoItem[];
 }
 
-export function OrderTracker({ pedido, historial }: OrderTrackerProps) {
+export function OrderTracker({ pedido, historial, items = [] }: OrderTrackerProps) {
+  const isMultiItem = items.length > 1;
   const currentStatusIndex = getEstadoIndex(pedido.estado);
   const isCancelled = pedido.estado === 'cancelado';
 
@@ -108,6 +110,34 @@ export function OrderTracker({ pedido, historial }: OrderTrackerProps) {
             </div>
           </div>
         </div>
+
+        {/* Desglose de ítems (carrito multi-producto) */}
+        {isMultiItem && (
+          <div className="mt-6 border-t border-kdb-border pt-6">
+            <span className="text-xs text-text-secondary uppercase tracking-wider block mb-3">
+              Productos del pedido
+            </span>
+            <div className="divide-y divide-kdb-border">
+              {items.map((item) => (
+                <div key={item.id} className="flex items-center justify-between py-3 gap-4">
+                  <div className="min-w-0">
+                    <p className="text-sm text-text-primary truncate">{item.producto_nombre}</p>
+                    <p className="text-xs text-text-secondary mt-0.5">
+                      {item.talla ? `Talla ${item.talla} · ` : ''}Cant. {item.cantidad}
+                    </p>
+                  </div>
+                  <span className="text-sm text-gold font-medium shrink-0">
+                    {formatPrice(item.subtotal)}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center justify-between pt-3 mt-1 border-t border-kdb-border">
+              <span className="text-sm font-semibold text-text-primary uppercase tracking-wider">Total</span>
+              <span className="text-base font-semibold text-gold">{formatPrice(pedido.total || 0)}</span>
+            </div>
+          </div>
+        )}
 
         {pedido.notas && (
           <div className="mt-6 p-4 bg-kdb-elevated border border-kdb-border rounded-sm">

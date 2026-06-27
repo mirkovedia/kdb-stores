@@ -1,13 +1,164 @@
 import { NextResponse } from 'next/server';
-import { pedidoSchema } from '@/lib/validations';
+import { pedidoSchema, checkoutSchema } from '@/lib/validations';
 import { createClient } from '@/lib/supabase/server';
-import { resend, FROM_EMAIL, ADMIN_EMAIL, generateOrderConfirmationHTML, generateAdminNotificationHTML } from '@/lib/resend';
+import {
+  resend,
+  FROM_EMAIL,
+  ADMIN_EMAIL,
+  generateOrderConfirmationHTML,
+  generateAdminNotificationHTML,
+} from '@/lib/resend';
+
+interface ResolvedItem {
+  producto_id: string;
+  producto_nombre: string;
+  producto_precio: number;
+  talla: string | null;
+  cantidad: number;
+  subtotal: number;
+  imagen_url: string | null;
+}
+
+async function sendEmails(args: {
+  cliente_email: string;
+  cliente_nombre: string;
+  numero_pedido: string;
+  pedido_id: string;
+  producto_nombre: string;
+  talla: string;
+  cantidad: number;
+  total: number;
+}) {
+  try {
+    if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 're_xxx') {
+      await resend.emails.send({
+        from: FROM_EMAIL,
+        to: args.cliente_email,
+        subject: `Tu pedido ${args.numero_pedido} fue recibido 🔥`,
+        html: generateOrderConfirmationHTML(args),
+      });
+      await resend.emails.send({
+        from: FROM_EMAIL,
+        to: ADMIN_EMAIL,
+        subject: `🔔 Nuevo Pedido: ${args.numero_pedido}`,
+        html: generateAdminNotificationHTML(args),
+      });
+    }
+  } catch (emailErr) {
+    console.error('Error sending Resend emails:', emailErr);
+  }
+}
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const supabase = await createClient();
 
-    // 1. Validate the request body with Zod
+    // ----- Camino 1: checkout del carrito (múltiples ítems) -----
+    if (Array.isArray(body.items)) {
+      const validation = checkoutSchema.safeParse(body);
+      if (!validation.success) {
+        return NextResponse.json(
+          { error: 'Datos de pedido inválidos', details: validation.error.format() },
+          { status: 400 }
+        );
+      }
+      const data = validation.data;
+      const ids = [...new Set(data.items.map((i) => i.producto_id))];
+
+      const { data: productos, error: prodError } = await supabase
+        .from('productos')
+        .select('id, nombre, precio, imagenes')
+        .in('id', ids);
+
+      if (prodError || !productos || productos.length === 0) {
+        return NextResponse.json({ error: 'Productos no encontrados' }, { status: 404 });
+      }
+
+      const resolved: ResolvedItem[] = [];
+      for (const item of data.items) {
+        const prod = productos.find((p) => p.id === item.producto_id);
+        if (!prod) continue;
+        const precio = Number(prod.precio);
+        resolved.push({
+          producto_id: prod.id,
+          producto_nombre: prod.nombre,
+          producto_precio: precio,
+          talla: item.talla || null,
+          cantidad: item.cantidad,
+          subtotal: precio * item.cantidad,
+          imagen_url: prod.imagenes?.[0] ?? null,
+        });
+      }
+
+      if (resolved.length === 0) {
+        return NextResponse.json({ error: 'Productos no encontrados' }, { status: 404 });
+      }
+
+      const total = resolved.reduce((sum, i) => sum + i.subtotal, 0);
+      const totalCantidad = resolved.reduce((sum, i) => sum + i.cantidad, 0);
+      const esMulti = resolved.length > 1;
+      const headerNombre = esMulti
+        ? `${resolved.length} productos (${totalCantidad} uds.)`
+        : resolved[0].producto_nombre;
+
+      const { data: newOrder, error: orderError } = await supabase
+        .from('pedidos')
+        .insert({
+          cliente_nombre: data.cliente_nombre,
+          cliente_email: data.cliente_email,
+          cliente_whatsapp: data.cliente_whatsapp,
+          cliente_direccion: data.cliente_direccion,
+          cliente_ciudad: data.cliente_ciudad,
+          producto_id: resolved[0].producto_id,
+          producto_nombre: headerNombre,
+          producto_precio: resolved[0].producto_precio,
+          talla: esMulti ? 'Varios' : resolved[0].talla,
+          cantidad: totalCantidad,
+          notas: data.notas,
+          estado: 'pendiente',
+          total,
+        })
+        .select('id, numero_pedido')
+        .single();
+
+      if (orderError || !newOrder) {
+        console.error('Error inserting cart order:', orderError);
+        return NextResponse.json({ error: 'Error al registrar pedido' }, { status: 500 });
+      }
+
+      const { error: itemsError } = await supabase.from('pedido_items').insert(
+        resolved.map((i) => ({ ...i, pedido_id: newOrder.id }))
+      );
+      if (itemsError) {
+        console.error('Error inserting pedido_items:', itemsError);
+      }
+
+      await supabase.from('pedido_historial').insert({
+        pedido_id: newOrder.id,
+        estado: 'pendiente',
+        nota: 'Pedido recibido por la tienda.',
+      });
+
+      await sendEmails({
+        cliente_email: data.cliente_email,
+        cliente_nombre: data.cliente_nombre,
+        numero_pedido: newOrder.numero_pedido,
+        pedido_id: newOrder.id,
+        producto_nombre: headerNombre,
+        talla: esMulti ? 'Varios' : resolved[0].talla ?? '—',
+        cantidad: totalCantidad,
+        total,
+      });
+
+      return NextResponse.json({
+        success: true,
+        pedido_id: newOrder.id,
+        numero_pedido: newOrder.numero_pedido,
+      });
+    }
+
+    // ----- Camino 2 (legacy): pedido directo de un solo producto -----
     const validation = pedidoSchema.safeParse(body);
     if (!validation.success) {
       return NextResponse.json(
@@ -28,12 +179,9 @@ export async function POST(request: Request) {
       notas,
     } = validation.data;
 
-    const supabase = await createClient();
-
-    // A. Fetch product to get snapshot of name & price
     const { data: product, error: productError } = await supabase
       .from('productos')
-      .select('nombre, precio')
+      .select('nombre, precio, imagenes')
       .eq('id', producto_id)
       .single();
 
@@ -43,7 +191,6 @@ export async function POST(request: Request) {
 
     const total = Number(product.precio) * cantidad;
 
-    // B. Insert order (numero_pedido generated by database trigger)
     const { data: newOrder, error: orderError } = await supabase
       .from('pedidos')
       .insert({
@@ -59,7 +206,7 @@ export async function POST(request: Request) {
         cantidad,
         notas,
         estado: 'pendiente',
-        total
+        total,
       })
       .select('id, numero_pedido')
       .single();
@@ -69,68 +216,42 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Error al registrar pedido' }, { status: 500 });
     }
 
-    // C. Insert status history log
-    const { error: historyError } = await supabase.from('pedido_historial').insert({
+    // Guarda también el ítem para consistencia con el modelo multi-ítem
+    await supabase.from('pedido_items').insert({
       pedido_id: newOrder.id,
-      estado: 'pendiente',
-      nota: 'Pedido recibido por la tienda.'
+      producto_id,
+      producto_nombre: product.nombre,
+      producto_precio: product.precio,
+      talla,
+      cantidad,
+      subtotal: total,
+      imagen_url: product.imagenes?.[0] ?? null,
     });
 
-    if (historyError) {
-      console.error('Error inserting order history log in Supabase:', historyError);
-    }
+    await supabase.from('pedido_historial').insert({
+      pedido_id: newOrder.id,
+      estado: 'pendiente',
+      nota: 'Pedido recibido por la tienda.',
+    });
 
-    // D. Send email confirmation to client
-    try {
-      if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 're_xxx') {
-        await resend.emails.send({
-          from: FROM_EMAIL,
-          to: cliente_email,
-          subject: `Tu pedido ${newOrder.numero_pedido} fue recibido 🔥`,
-          html: generateOrderConfirmationHTML({
-            numero_pedido: newOrder.numero_pedido,
-            cliente_nombre,
-            producto_nombre: product.nombre,
-            talla,
-            cantidad,
-            total,
-            pedido_id: newOrder.id,
-          }),
-        });
-
-        // E. Send email notification to admin
-        await resend.emails.send({
-          from: FROM_EMAIL,
-          to: ADMIN_EMAIL,
-          subject: `🔔 Nuevo Pedido: ${newOrder.numero_pedido}`,
-          html: generateAdminNotificationHTML({
-            numero_pedido: newOrder.numero_pedido,
-            cliente_nombre,
-            producto_nombre: product.nombre,
-            talla,
-            cantidad,
-            total,
-            pedido_id: newOrder.id,
-          }),
-        });
-      } else {
-        console.log('Skipping email send because RESEND_API_KEY is placeholder or not configured.');
-      }
-    } catch (emailErr) {
-      console.error('Error sending Resend emails:', emailErr);
-      // We don't fail the request if emails fail, but we log it
-    }
+    await sendEmails({
+      cliente_email,
+      cliente_nombre,
+      numero_pedido: newOrder.numero_pedido,
+      pedido_id: newOrder.id,
+      producto_nombre: product.nombre,
+      talla,
+      cantidad,
+      total,
+    });
 
     return NextResponse.json({
       success: true,
       pedido_id: newOrder.id,
-      numero_pedido: newOrder.numero_pedido
+      numero_pedido: newOrder.numero_pedido,
     });
   } catch (err) {
     console.error('Error in pedidos API:', err);
-    return NextResponse.json(
-      { error: 'Error interno del servidor' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

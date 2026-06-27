@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, SlidersHorizontal, X } from 'lucide-react';
+import { ChevronDown, SlidersHorizontal, X, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ProductFilters } from '@/types';
 
@@ -42,10 +42,33 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
   const [brandDropdownOpen, setBrandDropdownOpen] = useState(false);
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const [showSizes, setShowSizes] = useState(false);
-  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>(
+    filters.marca ? filters.marca.split(',') : []
+  );
+  const [searchValue, setSearchValue] = useState(filters.busqueda ?? '');
 
   const brandRef = useRef<HTMLDivElement>(null);
   const sortRef = useRef<HTMLDivElement>(null);
+
+  // Debounce: actualiza el filtro de búsqueda 350ms después de dejar de teclear
+  useEffect(() => {
+    const current = filters.busqueda ?? '';
+    if (searchValue === current) return;
+    const timer = setTimeout(() => {
+      onChange({ ...filters, busqueda: searchValue.trim() || undefined });
+    }, 350);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchValue]);
+
+  // Mantiene el input/marcas en sync cuando los filtros cambian desde fuera (ej. URL, limpiar)
+  useEffect(() => {
+    setSearchValue(filters.busqueda ?? '');
+  }, [filters.busqueda]);
+
+  useEffect(() => {
+    setSelectedBrands(filters.marca ? filters.marca.split(',') : []);
+  }, [filters.marca]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -81,6 +104,29 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
   return (
     <div className="sticky top-0 z-40 bg-kdb-bg/95 backdrop-blur-md border-b border-kdb-border">
       <div className="container-kdb py-4 space-y-4">
+        {/* Search input */}
+        <div className="relative">
+          <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-text-muted pointer-events-none">
+            <Search className="w-4 h-4" />
+          </span>
+          <input
+            type="text"
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            placeholder="Buscar por nombre, marca o modelo..."
+            className="w-full bg-kdb-elevated border border-kdb-border text-text-primary text-sm pl-10 pr-10 py-2.5 rounded-sm placeholder:text-text-muted focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors"
+          />
+          {searchValue && (
+            <button
+              onClick={() => setSearchValue('')}
+              aria-label="Limpiar búsqueda"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted hover:text-danger transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
         {/* Category tabs */}
         <div className="flex items-center gap-1 overflow-x-auto scrollbar-none pb-1">
           {CATEGORIES.map((cat) => (
@@ -250,10 +296,11 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
           </div>
 
           {/* Clear all filters */}
-          {(filters.categoria || filters.marca || filters.talla || filters.soloDisponibles || (filters.ordenar && filters.ordenar !== 'reciente')) && (
+          {(filters.categoria || filters.marca || filters.talla || filters.busqueda || filters.soloDisponibles || (filters.ordenar && filters.ordenar !== 'reciente')) && (
             <button
               onClick={() => {
                 setSelectedBrands([]);
+                setSearchValue('');
                 onChange({});
               }}
               className="flex items-center gap-1 px-3 py-2 text-sm text-danger hover:text-danger/80 transition-colors"

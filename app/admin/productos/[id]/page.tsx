@@ -5,10 +5,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Plus, X, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { productoSchema, type ProductoFormData } from '@/lib/validations';
 import { slugify } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
+import { ImageUploader } from '@/components/admin/ImageUploader';
 
 const TALLAS_ROPA = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const TALLAS_CALZADO = ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
@@ -22,7 +23,7 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
   const productId = unwrappedParams.id;
   const router = useRouter();
 
-  const [imageUrls, setImageUrls] = useState<string[]>(['']);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [categorias, setCategorias] = useState<{ id: string; nombre: string }[]>([]);
@@ -84,11 +85,7 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
             stock: product.stock,
           });
 
-          if (product.imagenes && product.imagenes.length > 0) {
-            setImageUrls(product.imagenes);
-          } else {
-            setImageUrls(['']);
-          }
+          setImageUrls(product.imagenes && product.imagenes.length > 0 ? product.imagenes : []);
         }
       } catch (err) {
         console.error('Error loading product for editing:', err);
@@ -108,22 +105,6 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
     const nombre = e.target.value;
     setValue('nombre', nombre);
     setValue('slug', slugify(nombre));
-  }
-
-  function addImageUrl() {
-    setImageUrls((prev) => [...prev, '']);
-  }
-
-  function removeImageUrl(index: number) {
-    setImageUrls((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  function updateImageUrl(index: number, value: string) {
-    setImageUrls((prev) => {
-      const updated = [...prev];
-      updated[index] = value;
-      return updated;
-    });
   }
 
   function toggleTalla(talla: string) {
@@ -404,37 +385,7 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
             Imágenes
           </h2>
 
-          <div className="space-y-3">
-            {imageUrls.map((url, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <input
-                  type="url"
-                  value={url}
-                  onChange={(e) => updateImageUrl(index, e.target.value)}
-                  className={inputClasses}
-                  placeholder="https://ejemplo.com/imagen.jpg"
-                />
-                {imageUrls.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeImageUrl(index)}
-                    className="p-2 text-text-muted hover:text-danger transition-colors flex-shrink-0"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-
-          <button
-            type="button"
-            onClick={addImageUrl}
-            className="inline-flex items-center gap-2 text-sm text-gold hover:text-gold-light transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Agregar otra imagen
-          </button>
+          <ImageUploader images={imageUrls} onChange={setImageUrls} />
         </div>
 
         {/* Toggles & Stock */}

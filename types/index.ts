@@ -80,6 +80,31 @@ export interface PedidoHistorial {
   created_at: string;
 }
 
+export interface PedidoItem {
+  id: string;
+  pedido_id: string;
+  producto_id: string | null;
+  producto_nombre: string;
+  producto_precio: number;
+  talla: string | null;
+  cantidad: number;
+  subtotal: number;
+  imagen_url: string | null;
+  created_at: string;
+}
+
+// Ítem del carrito (lado cliente, persistido en localStorage)
+export interface CartItem {
+  producto_id: string;
+  slug: string;
+  nombre: string;
+  precio: number;
+  imagen: string | null;
+  talla: string;
+  cantidad: number;
+  es_pedido: boolean;
+}
+
 export interface ProductFilters {
   categoria?: string;
   marca?: string;

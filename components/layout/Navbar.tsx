@@ -5,9 +5,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { Menu, X, ChevronDown, ShoppingBag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GoldButton } from '@/components/ui/GoldButton';
+import { useCart } from '@/context/CartContext';
 
 interface NavLink {
   label: string;
@@ -45,6 +46,7 @@ const itemVariants: Variants = {
 
 export function Navbar() {
   const pathname = usePathname();
+  const { totalItems, hydrated } = useCart();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [catalogOpen, setCatalogOpen] = useState(false);
@@ -216,20 +218,47 @@ export function Navbar() {
                 );
               })}
 
+              <Link
+                href="/carrito"
+                aria-label="Ver carrito"
+                className="relative p-2 text-text-secondary hover:text-gold transition-colors"
+              >
+                <ShoppingBag className="w-5 h-5" />
+                {hydrated && totalItems > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-gold text-black text-[10px] font-bold">
+                    {totalItems}
+                  </span>
+                )}
+              </Link>
+
               <GoldButton href="/pedidos" size="sm">
                 Hacer Pedido
               </GoldButton>
             </div>
 
-            {/* Mobile Hamburger */}
-            <button
-              type="button"
-              className="md:hidden p-2 text-text-secondary hover:text-gold transition-colors"
-              onClick={() => setMobileOpen((prev) => !prev)}
-              aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
-            >
-              {mobileOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+            {/* Mobile actions */}
+            <div className="flex items-center gap-1 md:hidden">
+              <Link
+                href="/carrito"
+                aria-label="Ver carrito"
+                className="relative p-2 text-text-secondary hover:text-gold transition-colors"
+              >
+                <ShoppingBag className="w-6 h-6" />
+                {hydrated && totalItems > 0 && (
+                  <span className="absolute top-0 right-0 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-gold text-black text-[10px] font-bold">
+                    {totalItems}
+                  </span>
+                )}
+              </Link>
+              <button
+                type="button"
+                className="p-2 text-text-secondary hover:text-gold transition-colors"
+                onClick={() => setMobileOpen((prev) => !prev)}
+                aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
+              >
+                {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
           </nav>
         </div>
       </header>

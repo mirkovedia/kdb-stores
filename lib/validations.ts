@@ -14,6 +14,25 @@ export const pedidoSchema = z.object({
 
 export type PedidoFormData = z.infer<typeof pedidoSchema>;
 
+// Checkout del carrito (múltiples ítems en un solo pedido)
+export const checkoutItemSchema = z.object({
+  producto_id: z.string().uuid('Producto inválido'),
+  talla: z.string().optional().default(''),
+  cantidad: z.number().min(1).max(10),
+});
+
+export const checkoutSchema = z.object({
+  cliente_nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  cliente_email: z.string().email('Email inválido'),
+  cliente_whatsapp: z.string().min(9, 'Número de WhatsApp inválido'),
+  cliente_direccion: z.string().optional(),
+  cliente_ciudad: z.string().optional(),
+  notas: z.string().optional(),
+  items: z.array(checkoutItemSchema).min(1, 'El carrito está vacío'),
+});
+
+export type CheckoutFormData = z.infer<typeof checkoutSchema>;
+
 export const productoSchema = z.object({
   nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   slug: z.string().min(2, 'El slug debe tener al menos 2 caracteres'),

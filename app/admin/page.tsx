@@ -8,7 +8,8 @@ import {
   Package,
   CalendarDays,
   Eye,
-  TrendingUp,
+  DollarSign,
+  BarChart3,
   Loader2,
 } from 'lucide-react';
 import { cn, formatPrice } from '@/lib/utils';
@@ -42,8 +43,11 @@ export default function AdminDashboardPage() {
     totalPedidos: 0,
     pedidosPendientes: 0,
     productosActivos: 0,
-    pedidosMes: 0
+    pedidosMes: 0,
+    ingresosMes: 0,
   });
+  const [monthlySales, setMonthlySales] = useState<{ label: string; total: number }[]>([]);
+  const [topProducts, setTopProducts] = useState<{ nombre: string; cantidad: number }[]>([]);
 
   useEffect(() => {
     async function loadDashboardData() {
@@ -77,11 +81,56 @@ export default function AdminDashboardPage() {
           .select('*', { count: 'exact', head: true })
           .gte('created_at', startOfMonth.toISOString());
 
+        // Conjunto de pedidos para métricas (ingresos, ventas/mes, top productos)
+        const { data: allPedidos } = await supabase
+          .from('pedidos')
+          .select('total, estado, producto_nombre, cantidad, created_at');
+
+        const validos = (allPedidos || []).filter((p) => p.estado !== 'cancelado');
+
+        // Ingresos del mes en curso
+        const ingresosMes = validos
+          .filter((p) => new Date(p.created_at) >= startOfMonth)
+          .reduce((sum, p) => sum + Number(p.total || 0), 0);
+
+        // Ventas (ingresos) de los últimos 6 meses
+        const monthLabels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        const buckets: { label: string; total: number; key: string }[] = [];
+        const now = new Date();
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          buckets.push({
+            label: monthLabels[d.getMonth()],
+            total: 0,
+            key: `${d.getFullYear()}-${d.getMonth()}`,
+          });
+        }
+        for (const p of validos) {
+          const d = new Date(p.created_at);
+          const key = `${d.getFullYear()}-${d.getMonth()}`;
+          const bucket = buckets.find((b) => b.key === key);
+          if (bucket) bucket.total += Number(p.total || 0);
+        }
+        setMonthlySales(buckets.map(({ label, total }) => ({ label, total })));
+
+        // Top 5 productos más pedidos (por cantidad)
+        const productMap = new Map<string, number>();
+        for (const p of validos) {
+          const qty = Number(p.cantidad || 1);
+          productMap.set(p.producto_nombre, (productMap.get(p.producto_nombre) || 0) + qty);
+        }
+        const top = [...productMap.entries()]
+          .map(([nombre, cantidad]) => ({ nombre, cantidad }))
+          .sort((a, b) => b.cantidad - a.cantidad)
+          .slice(0, 5);
+        setTopProducts(top);
+
         setStats({
           totalPedidos: totalPedidos || 0,
           pedidosPendientes: pedidosPendientes || 0,
           productosActivos: productosActivos || 0,
-          pedidosMes: pedidosMes || 0
+          pedidosMes: pedidosMes || 0,
+          ingresosMes,
         });
 
         // Obtener los últimos 10 pedidos
@@ -104,7 +153,12 @@ export default function AdminDashboardPage() {
     loadDashboardData();
   }, []);
 
-  const displayCards = [
+  const displayCards: { label: string; value: string | number; icon: React.ReactNode }[] = [
+    {
+      label: 'Ingresos del Mes',
+      value: formatPrice(stats.ingresosMes),
+      icon: <DollarSign className="w-6 h-6" />,
+    },
     {
       label: 'Total Pedidos',
       value: stats.totalPedidos,
@@ -126,6 +180,9 @@ export default function AdminDashboardPage() {
       icon: <CalendarDays className="w-6 h-6" />,
     },
   ];
+
+  const maxMonthly = Math.max(1, ...monthlySales.map((m) => m.total));
+  const maxTop = Math.max(1, ...topProducts.map((p) => p.cantidad));
 
   if (loading) {
     return (
@@ -151,7 +208,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {displayCards.map((card) => (
           <div
             key={card.label}
@@ -168,6 +225,66 @@ export default function AdminDashboardPage() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Charts row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Ventas por mes */}
+        <div className="bg-kdb-card border border-kdb-border rounded-md p-6 lg:col-span-2">
+          <div className="flex items-center gap-2 mb-6">
+            <BarChart3 className="w-5 h-5 text-gold" />
+            <h2 className="text-xl font-[family-name:var(--font-bebas-neue)] text-text-primary tracking-wide">
+              Ingresos — Últimos 6 meses
+            </h2>
+          </div>
+          {monthlySales.every((m) => m.total === 0) ? (
+            <p className="text-sm text-text-muted py-12 text-center">
+              Aún no hay ventas registradas.
+            </p>
+          ) : (
+            <div className="flex items-end justify-between gap-3 h-48">
+              {monthlySales.map((m, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                  <span className="text-[10px] text-text-secondary">
+                    {m.total > 0 ? formatPrice(m.total).replace('.00', '') : ''}
+                  </span>
+                  <div
+                    className="w-full bg-gradient-to-t from-gold-dark to-gold rounded-sm transition-all"
+                    style={{ height: `${(m.total / maxMonthly) * 100}%`, minHeight: m.total > 0 ? '4px' : '0' }}
+                  />
+                  <span className="text-xs text-text-muted">{m.label}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Top productos */}
+        <div className="bg-kdb-card border border-kdb-border rounded-md p-6">
+          <h2 className="text-xl font-[family-name:var(--font-bebas-neue)] text-text-primary tracking-wide mb-6">
+            Productos más pedidos
+          </h2>
+          {topProducts.length === 0 ? (
+            <p className="text-sm text-text-muted py-12 text-center">Sin datos todavía.</p>
+          ) : (
+            <div className="space-y-4">
+              {topProducts.map((p) => (
+                <div key={p.nombre}>
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <span className="text-text-secondary truncate pr-2">{p.nombre}</span>
+                    <span className="text-gold font-medium shrink-0">{p.cantidad}</span>
+                  </div>
+                  <div className="h-1.5 bg-kdb-elevated rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gold rounded-full"
+                      style={{ width: `${(p.cantidad / maxTop) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Recent Orders Table */}

@@ -1,90 +1,59 @@
-'use client';
-
-import { use, useState, useEffect } from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
+import { ChevronRight, ArrowLeft } from 'lucide-react';
 import { ProductGallery } from '@/components/producto/ProductGallery';
-import { SizeSelector } from '@/components/producto/SizeSelector';
-import { OrderForm } from '@/components/producto/OrderForm';
+import { ProductPurchasePanel } from '@/components/producto/ProductPurchasePanel';
 import { ProductCard } from '@/components/catalogo/ProductCard';
 import { SectionTitle } from '@/components/ui/SectionTitle';
-import { formatPrice, getWhatsAppLink, PLACEHOLDER_IMAGES } from '@/lib/utils';
-import type { Producto } from '@/types';
-import { ChevronRight, ArrowLeft } from 'lucide-react';
+import { formatPrice } from '@/lib/utils';
+import { getProductoBySlug, getProductosRelacionados } from '@/lib/productos';
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export default function ProductDetailPage({ params }: ProductPageProps) {
-  const unwrappedParams = use(params);
-  const slug = unwrappedParams.slug;
+export async function generateMetadata({
+  params,
+}: ProductPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const product = await getProductoBySlug(slug);
 
-  const [product, setProduct] = useState<Producto | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [selectedSize, setSelectedSize] = useState<string>('');
-  const [relatedProducts, setRelatedProducts] = useState<Producto[]>([]);
-
-  useEffect(() => {
-    let active = true;
-    async function loadProduct() {
-      try {
-        setLoading(true);
-        const res = await fetch(`/api/productos?slug=${slug}`);
-        if (!res.ok) throw new Error('Product not found');
-        const data = await res.json();
-        
-        // El endpoint devuelve una lista filtrada, por lo que tomamos el primer elemento
-        const foundProduct = Array.isArray(data) ? data[0] : data;
-        
-        if (active) {
-          if (foundProduct) {
-            setProduct(foundProduct);
-            setSelectedSize('');
-
-            // Cargar productos relacionados (misma categoría)
-            if (foundProduct.categoria_id) {
-              const relRes = await fetch(`/api/productos?categoria=${foundProduct.categoria_id}`);
-              if (relRes.ok) {
-                const relData = await relRes.json();
-                const related = relData
-                  .filter((p: Producto) => p.id !== foundProduct.id)
-                  .slice(0, 4);
-                setRelatedProducts(related);
-              }
-            }
-          } else {
-            setProduct(null);
-          }
-        }
-      } catch (err) {
-        console.error('Error loading product:', err);
-        if (active) {
-          setProduct(null);
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
-      }
-    }
-
-    if (slug) {
-      loadProduct();
-    }
-    
-    return () => {
-      active = false;
+  if (!product) {
+    return {
+      title: { absolute: 'Producto no encontrado | KDB Stores' },
+      description: 'El producto que buscas no existe o fue retirado del catálogo.',
     };
-  }, [slug]);
-
-  if (loading) {
-    return (
-      <div className="container-kdb py-32 text-center">
-        <div className="w-10 h-10 border-4 border-gold/30 border-t-gold rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-text-secondary text-sm">Cargando detalles del producto...</p>
-      </div>
-    );
   }
+
+  const title = product.nombre;
+  const description =
+    product.descripcion ??
+    `${product.nombre} disponible en KDB Stores. ${formatPrice(product.precio)}. Originales. Exclusivos. A tu puerta.`;
+  const image = product.imagenes?.[0];
+
+  return {
+    title,
+    description,
+    alternates: { canonical: `/producto/${product.slug}` },
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      url: `/producto/${product.slug}`,
+      images: image ? [{ url: image, alt: product.nombre }] : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: image ? [image] : undefined,
+    },
+  };
+}
+
+export default async function ProductDetailPage({ params }: ProductPageProps) {
+  const { slug } = await params;
+  const product = await getProductoBySlug(slug);
 
   if (!product) {
     return (
@@ -106,10 +75,34 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
     );
   }
 
-  const hasDiscount = product.precio_original && product.precio_original > product.precio;
+  const relatedProducts = await getProductosRelacionados(product);
+
+  // JSON-LD structured data (Schema.org Product) para rich results en Google
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.nombre,
+    description: product.descripcion ?? undefined,
+    image: product.imagenes,
+    brand: product.marca
+      ? { '@type': 'Brand', name: product.marca.nombre }
+      : undefined,
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: 'PEN',
+      price: product.precio,
+      availability: product.disponible
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock',
+    },
+  };
 
   return (
     <div className="py-8 md:py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="container-kdb">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-xs md:text-sm text-[#A0A0A0] mb-8 overflow-x-auto whitespace-nowrap pb-2">
@@ -131,75 +124,19 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
             <ProductGallery imagenes={product.imagenes} nombre={product.nombre} />
           </div>
 
-          {/* Right: Info */}
-          <div className="lg:col-span-5 flex flex-col justify-between">
-            <div className="space-y-6">
-              <div>
-                {/* Brand */}
-                {product.marca && (
-                  <Link
-                    href={`/catalogo?marca=${product.marca.nombre.toLowerCase()}`}
-                    className="text-[#C9A84C] text-sm font-semibold tracking-wider hover:underline uppercase"
-                  >
-                    {product.marca.nombre}
-                  </Link>
-                )}
-                {/* Product Name */}
-                <h1 className="font-[family-name:var(--font-bebas-neue)] text-4xl md:text-5xl text-[#F5F5F5] tracking-wide mt-1">
-                  {product.nombre}
-                </h1>
-              </div>
-
-              {/* Price */}
-              <div className="flex items-baseline gap-3">
-                <span className="font-[family-name:var(--font-bebas-neue)] text-3xl md:text-4xl text-[#C9A84C]">
-                  {formatPrice(product.precio)}
-                </span>
-                {hasDiscount && (
-                  <span className="text-[#555555] line-through text-lg">
-                    {formatPrice(product.precio_original!)}
-                  </span>
-                )}
-              </div>
-
-              {/* Description */}
-              <p className="text-sm md:text-base text-[#A0A0A0] leading-relaxed">
-                {product.descripcion}
-              </p>
-
-              {/* Size Selector */}
-              <div>
-                <h3 className="text-sm font-medium text-[#F5F5F5] uppercase tracking-wider mb-3">
-                  Tallas Disponibles
-                </h3>
-                <SizeSelector
-                  sizes={product.tallas_disponibles}
-                  selectedSize={selectedSize}
-                  onSelect={setSelectedSize}
-                />
-              </div>
-
-              {/* es_pedido warning */}
-              {product.es_pedido && (
-                <div className="bg-[#C9A84C]/5 border border-[#C9A84C]/20 p-4 rounded-sm">
-                  <p className="text-xs md:text-sm text-[#E4C06A] leading-relaxed">
-                    📦 <strong>Este producto se importa a pedido.</strong> Tiempo estimado de entrega: 2 a 3 semanas. Ideal si buscas un modelo exclusivo.
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Order Form */}
-            <div className="mt-8 border-t border-[#222222] pt-8">
-              <OrderForm product={product} selectedSize={selectedSize} />
-            </div>
+          {/* Right: Info + purchase (client) */}
+          <div className="lg:col-span-5">
+            <ProductPurchasePanel product={product} />
           </div>
         </div>
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div className="border-t border-[#222222] pt-16">
-            <SectionTitle title="También te puede interesar" subtitle="Completa tu outfit con estos recomendados" />
+            <SectionTitle
+              title="También te puede interesar"
+              subtitle="Completa tu outfit con estos recomendados"
+            />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-8">
               {relatedProducts.map((p) => (
                 <ProductCard key={p.id} product={p} />

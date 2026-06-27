@@ -1,14 +1,13 @@
 'use client';
 
-import { use, useState, useEffect } from 'react';
+import { use, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { OrderTracker } from '@/components/pedidos/OrderTracker';
 import { SectionTitle } from '@/components/ui/SectionTitle';
-import type { Pedido, PedidoHistorial, EstadoPedido } from '@/types';
+import { createClient } from '@/lib/supabase/client';
+import type { Pedido, PedidoHistorial, PedidoItem } from '@/types';
 import { Search, Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
-
-
 
 interface TrackingPageProps {
   params: Promise<{ id: string }>;
@@ -21,42 +20,57 @@ export default function OrderTrackingPage({ params }: TrackingPageProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
-  const [orderData, setOrderData] = useState<{ pedido: Pedido; historial: PedidoHistorial[] } | null>(null);
+  const [orderData, setOrderData] = useState<{ pedido: Pedido; historial: PedidoHistorial[]; items?: PedidoItem[] } | null>(null);
+  const [live, setLive] = useState(false);
 
-  useEffect(() => {
-    let active = true;
-
-    async function loadOrder() {
-      setLoading(true);
+  const loadOrder = useCallback(
+    async (showSpinner = true) => {
+      if (showSpinner) setLoading(true);
       try {
         const response = await fetch(`/api/pedidos/${orderId}`);
-        if (!response.ok) {
-          throw new Error('Pedido no encontrado');
-        }
+        if (!response.ok) throw new Error('Pedido no encontrado');
         const data = await response.json();
-        if (active) {
-          setOrderData(data);
-        }
+        setOrderData(data);
       } catch (err) {
         console.error('Error fetching order status:', err);
-        if (active) {
-          setOrderData(null);
-        }
+        if (showSpinner) setOrderData(null);
       } finally {
-        if (active) {
-          setLoading(false);
-        }
+        if (showSpinner) setLoading(false);
       }
-    }
+    },
+    [orderId]
+  );
 
-    if (orderId) {
-      loadOrder();
-    }
-    
+  useEffect(() => {
+    if (orderId) loadOrder();
+  }, [orderId, loadOrder]);
+
+  // Suscripción en tiempo real: refresca cuando el pedido o su historial cambian
+  const pedidoId = orderData?.pedido.id;
+  useEffect(() => {
+    if (!pedidoId) return;
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`pedido-${pedidoId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'pedidos', filter: `id=eq.${pedidoId}` },
+        () => loadOrder(false)
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'pedido_historial', filter: `pedido_id=eq.${pedidoId}` },
+        () => loadOrder(false)
+      )
+      .subscribe((status) => {
+        setLive(status === 'SUBSCRIBED');
+      });
+
     return () => {
-      active = false;
+      supabase.removeChannel(channel);
+      setLive(false);
     };
-  }, [orderId]);
+  }, [pedidoId, loadOrder]);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -68,7 +82,7 @@ export default function OrderTrackingPage({ params }: TrackingPageProps) {
   return (
     <div className="py-12 md:py-20 min-h-screen bg-kdb-bg">
       <div className="container-kdb max-w-4xl mx-auto">
-        
+
         {/* Navigation back */}
         <Link href="/" className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-gold transition-colors mb-8">
           <ArrowLeft className="w-4 h-4" />
@@ -109,8 +123,17 @@ export default function OrderTrackingPage({ params }: TrackingPageProps) {
           <div>
             <div className="text-center mb-8">
               <SectionTitle title="Seguimiento de Pedido" subtitle="Revisa el estado de tu pedido en tiempo real." />
+              {live && (
+                <span className="inline-flex items-center gap-2 mt-3 text-xs text-success">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
+                  </span>
+                  Actualización en vivo
+                </span>
+              )}
             </div>
-            <OrderTracker pedido={orderData.pedido} historial={orderData.historial} />
+            <OrderTracker pedido={orderData.pedido} historial={orderData.historial} items={orderData.items} />
           </div>
         ) : (
           <div className="bg-kdb-card border border-kdb-border p-12 text-center rounded-sm">

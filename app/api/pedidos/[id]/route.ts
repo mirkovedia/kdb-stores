@@ -43,7 +43,14 @@ export async function GET(
       return NextResponse.json({ error: historialError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ pedido, historial });
+    // Ítems del pedido (carrito multi-producto)
+    const { data: items } = await supabase
+      .from('pedido_items')
+      .select('*')
+      .eq('pedido_id', pedido.id)
+      .order('created_at', { ascending: true });
+
+    return NextResponse.json({ pedido, historial, items: items || [] });
   } catch (err) {
     console.error('Error fetching order:', err);
     return NextResponse.json(

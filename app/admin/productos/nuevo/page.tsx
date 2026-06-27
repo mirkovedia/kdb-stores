@@ -5,17 +5,18 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Plus, X, Save } from 'lucide-react';
+import { ArrowLeft, Save } from 'lucide-react';
 import { productoSchema, type ProductoFormData } from '@/lib/validations';
 import { slugify } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
+import { ImageUploader } from '@/components/admin/ImageUploader';
 
 const TALLAS_ROPA = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const TALLAS_CALZADO = ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
 
 export default function NuevoProductoPage() {
   const router = useRouter();
-  const [imageUrls, setImageUrls] = useState<string[]>(['']);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categorias, setCategorias] = useState<{ id: string; nombre: string }[]>([]);
   const [marcas, setMarcas] = useState<{ id: string; nombre: string }[]>([]);
@@ -71,22 +72,6 @@ export default function NuevoProductoPage() {
     const nombre = e.target.value;
     setValue('nombre', nombre);
     setValue('slug', slugify(nombre));
-  }
-
-  function addImageUrl() {
-    setImageUrls((prev) => [...prev, '']);
-  }
-
-  function removeImageUrl(index: number) {
-    setImageUrls((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  function updateImageUrl(index: number, value: string) {
-    setImageUrls((prev) => {
-      const updated = [...prev];
-      updated[index] = value;
-      return updated;
-    });
   }
 
   function toggleTalla(talla: string) {
@@ -352,37 +337,7 @@ export default function NuevoProductoPage() {
             Imágenes
           </h2>
 
-          <div className="space-y-3">
-            {imageUrls.map((url, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <input
-                  type="url"
-                  value={url}
-                  onChange={(e) => updateImageUrl(index, e.target.value)}
-                  className={inputClasses}
-                  placeholder="https://ejemplo.com/imagen.jpg"
-                />
-                {imageUrls.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeImageUrl(index)}
-                    className="p-2 text-text-muted hover:text-danger transition-colors flex-shrink-0"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-
-          <button
-            type="button"
-            onClick={addImageUrl}
-            className="inline-flex items-center gap-2 text-sm text-gold hover:text-gold-light transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Agregar otra imagen
-          </button>
+          <ImageUploader images={imageUrls} onChange={setImageUrls} />
         </div>
 
         {/* Toggles & Stock */}
