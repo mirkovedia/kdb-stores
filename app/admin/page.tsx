@@ -1,6 +1,3 @@
-'use client';
-
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   ShoppingBag,
@@ -10,128 +7,113 @@ import {
   Eye,
   DollarSign,
   BarChart3,
-  Loader2,
 } from 'lucide-react';
 import { cn, formatPrice, ESTADO_COLORS, ESTADO_LABELS } from '@/lib/utils';
 import type { Pedido } from '@/types';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/server';
 
-export default function AdminDashboardPage() {
-  const [pedidos, setPedidos] = useState<Pedido[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalPedidos: 0,
-    pedidosPendientes: 0,
-    productosActivos: 0,
-    pedidosMes: 0,
-    ingresosMes: 0,
-  });
-  const [monthlySales, setMonthlySales] = useState<{ label: string; total: number }[]>([]);
-  const [topProducts, setTopProducts] = useState<{ nombre: string; cantidad: number }[]>([]);
+interface PedidoMetric {
+  total: number | null;
+  estado: string;
+  producto_nombre: string;
+  cantidad: number | null;
+  created_at: string;
+}
 
-  useEffect(() => {
-    async function loadDashboardData() {
-      try {
-        setLoading(true);
-        const supabase = createClient();
+async function getDashboardData() {
+  const supabase = await createClient();
 
-        // Obtener cantidad de pedidos
-        const { count: totalPedidos } = await supabase
-          .from('pedidos')
-          .select('*', { count: 'exact', head: true });
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
 
-        // Obtener cantidad de pedidos pendientes
-        const { count: pedidosPendientes } = await supabase
-          .from('pedidos')
-          .select('*', { count: 'exact', head: true })
-          .eq('estado', 'pendiente');
+  const [
+    { count: totalPedidos },
+    { count: pedidosPendientes },
+    { count: productosActivos },
+    { count: pedidosMes },
+    { data: allPedidos },
+    { data: recentOrders },
+  ] = await Promise.all([
+    supabase.from('pedidos').select('*', { count: 'exact', head: true }),
+    supabase
+      .from('pedidos')
+      .select('*', { count: 'exact', head: true })
+      .eq('estado', 'pendiente'),
+    supabase
+      .from('productos')
+      .select('*', { count: 'exact', head: true })
+      .eq('disponible', true),
+    supabase
+      .from('pedidos')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', startOfMonth.toISOString()),
+    supabase
+      .from('pedidos')
+      .select('total, estado, producto_nombre, cantidad, created_at'),
+    supabase
+      .from('pedidos')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(10),
+  ]);
 
-        // Obtener cantidad de productos activos
-        const { count: productosActivos } = await supabase
-          .from('productos')
-          .select('*', { count: 'exact', head: true })
-          .eq('disponible', true);
+  const validos = ((allPedidos as PedidoMetric[]) || []).filter(
+    (p) => p.estado !== 'cancelado'
+  );
 
-        // Obtener cantidad de pedidos del mes
-        const startOfMonth = new Date();
-        startOfMonth.setDate(1);
-        startOfMonth.setHours(0, 0, 0, 0);
-        const { count: pedidosMes } = await supabase
-          .from('pedidos')
-          .select('*', { count: 'exact', head: true })
-          .gte('created_at', startOfMonth.toISOString());
+  // Ingresos del mes en curso
+  const ingresosMes = validos
+    .filter((p) => new Date(p.created_at) >= startOfMonth)
+    .reduce((sum, p) => sum + Number(p.total || 0), 0);
 
-        // Conjunto de pedidos para métricas (ingresos, ventas/mes, top productos)
-        const { data: allPedidos } = await supabase
-          .from('pedidos')
-          .select('total, estado, producto_nombre, cantidad, created_at');
+  // Ingresos de los últimos 6 meses
+  const monthLabels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  const buckets: { label: string; total: number; key: string }[] = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    buckets.push({
+      label: monthLabels[d.getMonth()],
+      total: 0,
+      key: `${d.getFullYear()}-${d.getMonth()}`,
+    });
+  }
+  for (const p of validos) {
+    const d = new Date(p.created_at);
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    const bucket = buckets.find((b) => b.key === key);
+    if (bucket) bucket.total += Number(p.total || 0);
+  }
+  const monthlySales = buckets.map(({ label, total }) => ({ label, total }));
 
-        const validos = (allPedidos || []).filter((p) => p.estado !== 'cancelado');
+  // Top 5 productos más pedidos (por cantidad)
+  const productMap = new Map<string, number>();
+  for (const p of validos) {
+    const qty = Number(p.cantidad || 1);
+    productMap.set(p.producto_nombre, (productMap.get(p.producto_nombre) || 0) + qty);
+  }
+  const topProducts = [...productMap.entries()]
+    .map(([nombre, cantidad]) => ({ nombre, cantidad }))
+    .sort((a, b) => b.cantidad - a.cantidad)
+    .slice(0, 5);
 
-        // Ingresos del mes en curso
-        const ingresosMes = validos
-          .filter((p) => new Date(p.created_at) >= startOfMonth)
-          .reduce((sum, p) => sum + Number(p.total || 0), 0);
+  return {
+    stats: {
+      totalPedidos: totalPedidos || 0,
+      pedidosPendientes: pedidosPendientes || 0,
+      productosActivos: productosActivos || 0,
+      pedidosMes: pedidosMes || 0,
+      ingresosMes,
+    },
+    monthlySales,
+    topProducts,
+    pedidos: (recentOrders as Pedido[]) || [],
+  };
+}
 
-        // Ventas (ingresos) de los últimos 6 meses
-        const monthLabels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-        const buckets: { label: string; total: number; key: string }[] = [];
-        const now = new Date();
-        for (let i = 5; i >= 0; i--) {
-          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-          buckets.push({
-            label: monthLabels[d.getMonth()],
-            total: 0,
-            key: `${d.getFullYear()}-${d.getMonth()}`,
-          });
-        }
-        for (const p of validos) {
-          const d = new Date(p.created_at);
-          const key = `${d.getFullYear()}-${d.getMonth()}`;
-          const bucket = buckets.find((b) => b.key === key);
-          if (bucket) bucket.total += Number(p.total || 0);
-        }
-        setMonthlySales(buckets.map(({ label, total }) => ({ label, total })));
-
-        // Top 5 productos más pedidos (por cantidad)
-        const productMap = new Map<string, number>();
-        for (const p of validos) {
-          const qty = Number(p.cantidad || 1);
-          productMap.set(p.producto_nombre, (productMap.get(p.producto_nombre) || 0) + qty);
-        }
-        const top = [...productMap.entries()]
-          .map(([nombre, cantidad]) => ({ nombre, cantidad }))
-          .sort((a, b) => b.cantidad - a.cantidad)
-          .slice(0, 5);
-        setTopProducts(top);
-
-        setStats({
-          totalPedidos: totalPedidos || 0,
-          pedidosPendientes: pedidosPendientes || 0,
-          productosActivos: productosActivos || 0,
-          pedidosMes: pedidosMes || 0,
-          ingresosMes,
-        });
-
-        // Obtener los últimos 10 pedidos
-        const { data: recentOrders, error } = await supabase
-          .from('pedidos')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(10);
-
-        if (!error && recentOrders) {
-          setPedidos(recentOrders);
-        }
-      } catch (err) {
-        console.error('Error loading dashboard data:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadDashboardData();
-  }, []);
+export default async function AdminDashboardPage() {
+  const { stats, monthlySales, topProducts, pedidos } = await getDashboardData();
 
   const displayCards: { label: string; value: string | number; icon: React.ReactNode }[] = [
     {
@@ -163,17 +145,6 @@ export default function AdminDashboardPage() {
 
   const maxMonthly = Math.max(1, ...monthlySales.map((m) => m.total));
   const maxTop = Math.max(1, ...topProducts.map((p) => p.cantidad));
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20 min-h-screen">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-gold mx-auto mb-4" />
-          <p className="text-text-secondary text-sm">Cargando datos del panel...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-8">
