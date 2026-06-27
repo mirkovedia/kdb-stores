@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Bell, Send } from 'lucide-react';
 import { productoSchema, type ProductoFormData } from '@/lib/validations';
 import { slugify } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
@@ -26,6 +26,8 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [pendingNotifs, setPendingNotifs] = useState(0);
+  const [sendingNotifs, setSendingNotifs] = useState(false);
   const [categorias, setCategorias] = useState<{ id: string; nombre: string }[]>([]);
   const [marcas, setMarcas] = useState<{ id: string; nombre: string }[]>([]);
 
@@ -87,6 +89,14 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
 
           setImageUrls(product.imagenes && product.imagenes.length > 0 ? product.imagenes : []);
         }
+
+        // Interesados pendientes de aviso de restock
+        const { count } = await supabase
+          .from('notificaciones_stock')
+          .select('*', { count: 'exact', head: true })
+          .eq('producto_id', productId)
+          .eq('notificado', false);
+        setPendingNotifs(count || 0);
       } catch (err) {
         console.error('Error loading product for editing:', err);
         alert('Error al cargar datos del producto');
@@ -116,6 +126,27 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
       );
     } else {
       setValue('tallas_disponibles', [...current, talla]);
+    }
+  }
+
+  async function handleSendNotifs() {
+    if (pendingNotifs === 0) return;
+    if (!confirm(`¿Enviar el aviso de restock a ${pendingNotifs} interesado(s)?`)) return;
+    setSendingNotifs(true);
+    try {
+      const res = await fetch('/api/notificaciones/enviar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ producto_id: productId }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Error al enviar');
+      alert(`Avisos enviados: ${result.enviados} de ${result.total ?? pendingNotifs}`);
+      setPendingNotifs(0);
+    } catch (err) {
+      alert('Error al enviar los avisos: ' + (err instanceof Error ? err.message : 'desconocido'));
+    } finally {
+      setSendingNotifs(false);
     }
   }
 
@@ -180,6 +211,31 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
           </p>
         </div>
       </div>
+
+      {/* Interesados en restock */}
+      {pendingNotifs > 0 && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gold/5 border border-gold/25 rounded-md p-4">
+          <div className="flex items-center gap-3">
+            <Bell className="w-5 h-5 text-gold shrink-0" />
+            <p className="text-sm text-text-primary">
+              <span className="font-semibold text-gold">{pendingNotifs}</span> persona
+              {pendingNotifs !== 1 ? 's' : ''} esperando este producto.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleSendNotifs}
+            disabled={sendingNotifs}
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gold text-kdb-bg font-semibold rounded-md hover:bg-gold-light transition-colors text-sm disabled:opacity-50"
+          >
+            {sendingNotifs ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Enviando...</>
+            ) : (
+              <><Send className="w-4 h-4" /> Notificar que llegó</>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">

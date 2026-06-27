@@ -33,6 +33,15 @@ export const checkoutSchema = z.object({
 
 export type CheckoutFormData = z.infer<typeof checkoutSchema>;
 
+// "Avísame cuando llegue" — suscripción a restock
+export const notifyStockSchema = z.object({
+  producto_id: z.string().uuid('Producto inválido'),
+  email: z.string().email('Email inválido'),
+  talla: z.string().optional(),
+});
+
+export type NotifyStockFormData = z.infer<typeof notifyStockSchema>;
+
 export const productoSchema = z.object({
   nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   slug: z.string().min(2, 'El slug debe tener al menos 2 caracteres'),

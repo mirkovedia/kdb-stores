@@ -7,6 +7,7 @@ import {
   ADMIN_EMAIL,
   generateOrderConfirmationHTML,
   generateAdminNotificationHTML,
+  type OrderEmailItem,
 } from '@/lib/resend';
 
 interface ResolvedItem {
@@ -28,6 +29,7 @@ async function sendEmails(args: {
   talla: string;
   cantidad: number;
   total: number;
+  items?: OrderEmailItem[];
 }) {
   try {
     if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 're_xxx') {
@@ -149,6 +151,12 @@ export async function POST(request: Request) {
         talla: esMulti ? 'Varios' : resolved[0].talla ?? '—',
         cantidad: totalCantidad,
         total,
+        items: resolved.map((i) => ({
+          producto_nombre: i.producto_nombre,
+          talla: i.talla,
+          cantidad: i.cantidad,
+          subtotal: i.subtotal,
+        })),
       });
 
       return NextResponse.json({

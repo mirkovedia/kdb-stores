@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ShoppingBag, Check, AlertCircle } from 'lucide-react';
 import { SizeSelector } from '@/components/producto/SizeSelector';
 import { OrderForm } from '@/components/producto/OrderForm';
+import { RestockNotify } from '@/components/producto/RestockNotify';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/context/CartContext';
 import type { Producto } from '@/types';
@@ -20,6 +21,7 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
   const { addItem } = useCart();
 
   const needsSize = product.tallas_disponibles.length > 0;
+  const agotado = !product.es_pedido && product.stock <= 0;
 
   function handleAddToCart() {
     if (needsSize && !selectedSize) {
@@ -106,6 +108,13 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
         )}
       </div>
 
+      {/* Producto agotado: aviso de restock en lugar del flujo de compra */}
+      {agotado ? (
+        <div className="mt-8">
+          <RestockNotify productoId={product.id} talla={needsSize ? selectedSize : undefined} />
+        </div>
+      ) : (
+        <>
       {/* Add to cart */}
       <div className="mt-8 space-y-3">
         <button
@@ -146,6 +155,8 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
         </p>
         <OrderForm product={product} selectedSize={selectedSize} />
       </div>
+        </>
+      )}
     </div>
   );
 }
