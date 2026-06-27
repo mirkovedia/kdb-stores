@@ -10,12 +10,19 @@ import {
   Trash2,
   Star,
   StarOff,
+  Loader2,
 } from 'lucide-react';
 import { cn, formatPrice, PLACEHOLDER_IMAGES } from '@/lib/utils';
 import type { Producto } from '@/types';
 import { createClient } from '@/lib/supabase/client';
 import { useAdminFeedback } from '@/components/admin/AdminFeedback';
 import { Pagination } from '@/components/admin/Pagination';
+import { ToggleSwitch } from '@/components/admin/ToggleSwitch';
+import {
+  SortableHeader,
+  nextSort,
+  type SortState,
+} from '@/components/admin/SortableHeader';
 
 const PAGE_SIZE = 10;
 
@@ -28,6 +35,9 @@ export function ProductosManager({
   const [productos, setProductos] = useState<Producto[]>(initialProductos);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [sort, setSort] = useState<SortState | null>(null);
+  // Acciones en vuelo, por clave `accion:id` (evita doble-disparo).
+  const [busy, setBusy] = useState<Record<string, boolean>>({});
 
   const filteredProductos = useMemo(() => {
     if (!search.trim()) return productos;
@@ -39,17 +49,42 @@ export function ProductosManager({
     );
   }, [search, productos]);
 
+  const sortedProductos = useMemo(() => {
+    if (!sort) return filteredProductos;
+    const dir = sort.dir === 'asc' ? 1 : -1;
+    return [...filteredProductos].sort((a, b) => {
+      switch (sort.key) {
+        case 'nombre':
+          return a.nombre.localeCompare(b.nombre) * dir;
+        case 'precio':
+          return (a.precio - b.precio) * dir;
+        case 'stock':
+          return (a.stock - b.stock) * dir;
+        default:
+          return 0;
+      }
+    });
+  }, [filteredProductos, sort]);
+
   function handleSearchChange(value: string) {
     setSearch(value);
     setPage(1); // Volver a la primera página al cambiar la búsqueda.
   }
 
+  function handleSort(key: string) {
+    setSort((prev) => nextSort(prev, key));
+    setPage(1);
+  }
+
   const pagedProductos = useMemo(
-    () => filteredProductos.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
-    [filteredProductos, page]
+    () => sortedProductos.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [sortedProductos, page]
   );
 
   async function toggleDisponible(id: string, currentVal: boolean) {
+    const key = `disp:${id}`;
+    if (busy[key]) return;
+    setBusy((b) => ({ ...b, [key]: true }));
     try {
       const supabase = createClient();
       const { error } = await supabase
@@ -64,10 +99,15 @@ export function ProductosManager({
     } catch (err) {
       toast('Error al actualizar disponibilidad', 'error');
       console.error(err);
+    } finally {
+      setBusy((b) => ({ ...b, [key]: false }));
     }
   }
 
   async function toggleDestacado(id: string, currentVal: boolean) {
+    const key = `dest:${id}`;
+    if (busy[key]) return;
+    setBusy((b) => ({ ...b, [key]: true }));
     try {
       const supabase = createClient();
       const { error } = await supabase
@@ -82,10 +122,14 @@ export function ProductosManager({
     } catch (err) {
       toast('Error al actualizar destacado', 'error');
       console.error(err);
+    } finally {
+      setBusy((b) => ({ ...b, [key]: false }));
     }
   }
 
   async function handleDelete(producto: Producto) {
+    const key = `del:${producto.id}`;
+    if (busy[key]) return;
     const ok = await confirm({
       title: 'Eliminar producto',
       message: `¿Seguro que querés eliminar "${producto.nombre}"? Esta acción no se puede deshacer.`,
@@ -93,6 +137,7 @@ export function ProductosManager({
       danger: true,
     });
     if (!ok) return;
+    setBusy((b) => ({ ...b, [key]: true }));
     try {
       const supabase = createClient();
       const { error } = await supabase.from('productos').delete().eq('id', producto.id);
@@ -102,6 +147,7 @@ export function ProductosManager({
     } catch (err) {
       toast('Error al eliminar producto', 'error');
       console.error(err);
+      setBusy((b) => ({ ...b, [key]: false }));
     }
   }
 
@@ -146,21 +192,27 @@ export function ProductosManager({
               <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider">
                 Imagen
               </th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider">
-                Nombre
-              </th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider hidden sm:table-cell">
-                Precio
-              </th>
+              <SortableHeader label="Nombre" sortKey="nombre" sort={sort} onSort={handleSort} />
+              <SortableHeader
+                label="Precio"
+                sortKey="precio"
+                sort={sort}
+                onSort={handleSort}
+                className="hidden sm:table-cell"
+              />
               <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider hidden md:table-cell">
                 Categoría
               </th>
               <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider hidden lg:table-cell">
                 Tallas
               </th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider hidden md:table-cell">
-                Stock
-              </th>
+              <SortableHeader
+                label="Stock"
+                sortKey="stock"
+                sort={sort}
+                onSort={handleSort}
+                className="hidden md:table-cell"
+              />
               <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider">
                 Disponible
               </th>
@@ -242,27 +294,24 @@ export function ProductosManager({
 
                 {/* Available toggle */}
                 <td className="px-4 py-3">
-                  <button
-                    onClick={() => toggleDisponible(producto.id, producto.disponible)}
-                    className={cn(
-                      'relative w-10 h-5 rounded-full transition-colors',
-                      producto.disponible ? 'bg-success' : 'bg-kdb-elevated'
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform',
-                        producto.disponible ? 'translate-x-5' : 'translate-x-0'
-                      )}
-                    />
-                  </button>
+                  <ToggleSwitch
+                    checked={producto.disponible}
+                    onChange={() => toggleDisponible(producto.id, producto.disponible)}
+                    disabled={busy[`disp:${producto.id}`]}
+                    activeColor="bg-success"
+                    label={`${producto.disponible ? 'Ocultar' : 'Mostrar'} "${producto.nombre}" en la tienda`}
+                  />
                 </td>
 
                 {/* Featured */}
                 <td className="px-4 py-3 hidden sm:table-cell">
                   <button
+                    type="button"
                     onClick={() => toggleDestacado(producto.id, producto.destacado)}
-                    className="text-text-muted hover:text-gold transition-colors"
+                    disabled={busy[`dest:${producto.id}`]}
+                    aria-pressed={producto.destacado}
+                    aria-label={`${producto.destacado ? 'Quitar de' : 'Marcar como'} destacado: "${producto.nombre}"`}
+                    className="text-text-muted hover:text-gold rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-gold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {producto.destacado ? (
                       <Star className="w-5 h-5 text-gold fill-gold" />
@@ -277,17 +326,25 @@ export function ProductosManager({
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/admin/productos/${producto.id}`}
-                      className="p-1.5 text-text-secondary hover:text-gold transition-colors"
+                      className="p-1.5 text-text-secondary hover:text-gold rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-gold transition-colors"
+                      aria-label={`Editar "${producto.nombre}"`}
                       title="Editar"
                     >
                       <Edit2 className="w-4 h-4" />
                     </Link>
                     <button
+                      type="button"
                       onClick={() => handleDelete(producto)}
-                      className="p-1.5 text-text-secondary hover:text-danger transition-colors"
+                      disabled={busy[`del:${producto.id}`]}
+                      aria-label={`Eliminar "${producto.nombre}"`}
                       title="Eliminar"
+                      className="p-1.5 text-text-secondary hover:text-danger rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-danger transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      {busy[`del:${producto.id}`] ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
                     </button>
                   </div>
                 </td>

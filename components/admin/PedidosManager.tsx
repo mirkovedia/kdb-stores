@@ -7,6 +7,7 @@ import {
   Phone,
   MessageSquare,
   Save,
+  Loader2,
 } from 'lucide-react';
 import {
   cn,
@@ -19,6 +20,11 @@ import type { EstadoPedido, Pedido, PedidoItem } from '@/types';
 import { createClient } from '@/lib/supabase/client';
 import { useAdminFeedback } from '@/components/admin/AdminFeedback';
 import { Pagination } from '@/components/admin/Pagination';
+import {
+  SortableHeader,
+  nextSort,
+  type SortState,
+} from '@/components/admin/SortableHeader';
 
 const PAGE_SIZE = 10;
 
@@ -45,20 +51,44 @@ export function PedidosManager({
   const [updateState, setUpdateState] = useState<Record<string, EstadoPedido>>({});
   const [updateNotes, setUpdateNotes] = useState<Record<string, string>>({});
   const [itemsMap, setItemsMap] = useState<Record<string, PedidoItem[]>>({});
+  const [sort, setSort] = useState<SortState | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const filteredPedidos = useMemo(() => {
     if (activeFilter === 'todos') return pedidos;
     return pedidos.filter((p) => p.estado === activeFilter);
   }, [activeFilter, pedidos]);
 
+  const sortedPedidos = useMemo(() => {
+    if (!sort) return filteredPedidos;
+    const dir = sort.dir === 'asc' ? 1 : -1;
+    return [...filteredPedidos].sort((a, b) => {
+      switch (sort.key) {
+        case 'numero':
+          return a.numero_pedido.localeCompare(b.numero_pedido) * dir;
+        case 'total':
+          return (Number(a.total || 0) - Number(b.total || 0)) * dir;
+        case 'fecha':
+          return a.created_at.localeCompare(b.created_at) * dir;
+        default:
+          return 0;
+      }
+    });
+  }, [filteredPedidos, sort]);
+
   function handleFilterChange(value: FilterTab) {
     setActiveFilter(value);
     setPage(1); // Volver a la primera página al cambiar de filtro.
   }
 
+  function handleSort(key: string) {
+    setSort((prev) => nextSort(prev, key));
+    setPage(1);
+  }
+
   const pagedPedidos = useMemo(
-    () => filteredPedidos.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
-    [filteredPedidos, page]
+    () => sortedPedidos.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [sortedPedidos, page]
   );
 
   function toggleExpand(id: string) {
@@ -81,11 +111,12 @@ export function PedidosManager({
     const newState = updateState[pedidoId];
     const note = updateNotes[pedidoId];
 
-    if (!newState) return;
+    if (!newState || updatingId) return;
 
+    setUpdatingId(pedidoId);
     try {
       const supabase = createClient();
-      
+
       // Update estado in pedidos table
       const { error: orderError } = await supabase
         .from('pedidos')
@@ -127,6 +158,8 @@ export function PedidosManager({
     } catch (err) {
       toast('Error al actualizar el estado del pedido', 'error');
       console.error(err);
+    } finally {
+      setUpdatingId(null);
     }
   }
 
@@ -181,10 +214,10 @@ export function PedidosManager({
         <table className="w-full">
           <thead>
             <tr className="border-b border-kdb-border">
-              <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider w-8" />
-              <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider">
-                Número
+              <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider w-8">
+                <span className="sr-only">Expandir</span>
               </th>
+              <SortableHeader label="Número" sortKey="numero" sort={sort} onSort={handleSort} />
               <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider">
                 Cliente
               </th>
@@ -200,12 +233,20 @@ export function PedidosManager({
               <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider">
                 Estado
               </th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider hidden sm:table-cell">
-                Total
-              </th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider hidden lg:table-cell">
-                Fecha
-              </th>
+              <SortableHeader
+                label="Total"
+                sortKey="total"
+                sort={sort}
+                onSort={handleSort}
+                className="hidden sm:table-cell"
+              />
+              <SortableHeader
+                label="Fecha"
+                sortKey="fecha"
+                sort={sort}
+                onSort={handleSort}
+                className="hidden lg:table-cell"
+              />
             </tr>
           </thead>
           <tbody className="divide-y divide-kdb-border">
@@ -221,11 +262,23 @@ export function PedidosManager({
                     onClick={() => toggleExpand(pedido.id)}
                   >
                     <td className="px-4 py-4">
-                      {isExpanded ? (
-                        <ChevronUp className="w-4 h-4 text-text-muted" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4 text-text-muted" />
-                      )}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleExpand(pedido.id);
+                        }}
+                        aria-expanded={isExpanded}
+                        aria-controls={`pedido-detalle-${pedido.id}`}
+                        aria-label={`${isExpanded ? 'Contraer' : 'Expandir'} pedido ${pedido.numero_pedido}`}
+                        className="text-text-muted hover:text-text-primary rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-gold transition-colors"
+                      >
+                        {isExpanded ? (
+                          <ChevronUp className="w-4 h-4" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4" />
+                        )}
+                      </button>
                     </td>
                     <td className="px-4 py-4 text-sm font-medium text-text-primary whitespace-nowrap">
                       {pedido.numero_pedido}
@@ -272,7 +325,7 @@ export function PedidosManager({
 
                   {/* Expanded detail */}
                   {isExpanded && (
-                    <tr className="bg-kdb-elevated/50">
+                    <tr id={`pedido-detalle-${pedido.id}`} className="bg-kdb-elevated/50">
                       <td colSpan={9} className="px-6 py-5">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Order details */}
@@ -376,14 +429,20 @@ export function PedidosManager({
                               />
 
                               <button
+                                type="button"
+                                disabled={updatingId === pedido.id}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleStateUpdate(pedido.id);
                                 }}
-                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold text-kdb-bg font-semibold rounded-md hover:bg-gold-light transition-colors text-sm"
+                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold text-kdb-bg font-semibold rounded-md hover:bg-gold-light transition-colors text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-kdb-bg disabled:opacity-50 disabled:cursor-not-allowed"
                               >
-                                <Save className="w-4 h-4" />
-                                Actualizar
+                                {updatingId === pedido.id ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <Save className="w-4 h-4" />
+                                )}
+                                {updatingId === pedido.id ? 'Guardando...' : 'Actualizar'}
                               </button>
                             </div>
                           </div>

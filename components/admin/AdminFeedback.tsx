@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useRef,
   useState,
   type ReactNode,
@@ -91,6 +92,8 @@ export function AdminFeedbackProvider({ children }: { children: ReactNode }) {
   });
   const idRef = useRef(0);
   const resolverRef = useRef<((value: boolean) => void) | null>(null);
+  const confirmBtnRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   const dismissToast = useCallback((id: number) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -117,6 +120,38 @@ export function AdminFeedbackProvider({ children }: { children: ReactNode }) {
     resolverRef.current = null;
     setConfirmState((prev) => ({ ...prev, open: false }));
   }, []);
+
+  // Diálogo abierto: enfocar el botón de confirmar, cerrar con Escape y atrapar
+  // el foco (Tab/Shift+Tab) dentro del modal.
+  useEffect(() => {
+    if (!confirmState.open) return;
+    confirmBtnRef.current?.focus();
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeConfirm(false);
+        return;
+      }
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusables =
+          dialogRef.current.querySelectorAll<HTMLElement>('button');
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [confirmState.open, closeConfirm]);
 
   return (
     <AdminFeedbackContext.Provider value={{ toast, confirm }}>
@@ -166,8 +201,11 @@ export function AdminFeedbackProvider({ children }: { children: ReactNode }) {
               onClick={() => closeConfirm(false)}
             />
             <motion.div
+              ref={dialogRef}
               role="alertdialog"
               aria-modal="true"
+              aria-labelledby={confirmState.title ? 'confirm-title' : undefined}
+              aria-describedby="confirm-message"
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -180,28 +218,34 @@ export function AdminFeedbackProvider({ children }: { children: ReactNode }) {
                 )}
                 <div className="flex-1">
                   {confirmState.title && (
-                    <h3 className="text-lg font-semibold text-text-primary mb-1">
+                    <h3
+                      id="confirm-title"
+                      className="text-lg font-semibold text-text-primary mb-1"
+                    >
                       {confirmState.title}
                     </h3>
                   )}
-                  <p className="text-sm text-text-secondary">{confirmState.message}</p>
+                  <p id="confirm-message" className="text-sm text-text-secondary">
+                    {confirmState.message}
+                  </p>
                 </div>
               </div>
 
               <div className="flex items-center justify-end gap-3 mt-6">
                 <button
                   onClick={() => closeConfirm(false)}
-                  className="px-4 py-2 text-sm text-text-secondary hover:text-text-primary transition-colors"
+                  className="px-4 py-2 text-sm text-text-secondary hover:text-text-primary rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-gold transition-colors"
                 >
                   {confirmState.cancelLabel || 'Cancelar'}
                 </button>
                 <button
+                  ref={confirmBtnRef}
                   onClick={() => closeConfirm(true)}
                   className={cn(
-                    'px-5 py-2 text-sm font-semibold rounded-md transition-colors',
+                    'px-5 py-2 text-sm font-semibold rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-kdb-card',
                     confirmState.danger
-                      ? 'bg-danger text-white hover:bg-red-600'
-                      : 'bg-gold text-kdb-bg hover:bg-gold-light'
+                      ? 'bg-danger text-white hover:bg-red-600 focus-visible:ring-danger'
+                      : 'bg-gold text-kdb-bg hover:bg-gold-light focus-visible:ring-gold'
                   )}
                 >
                   {confirmState.confirmLabel || 'Confirmar'}

@@ -11,6 +11,7 @@ import { slugify } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 import { ImageUploader } from '@/components/admin/ImageUploader';
 import { useAdminFeedback } from '@/components/admin/AdminFeedback';
+import { ToggleSwitch } from '@/components/admin/ToggleSwitch';
 
 const TALLAS_ROPA = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const TALLAS_CALZADO = ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
@@ -504,23 +505,12 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
                   El producto se importa por encargo
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setValue('es_pedido', !esPedido)}
-                className={
-                  esPedido
-                    ? 'relative w-10 h-5 rounded-full bg-gold transition-colors'
-                    : 'relative w-10 h-5 rounded-full bg-kdb-border transition-colors'
-                }
-              >
-                <span
-                  className={
-                    esPedido
-                      ? 'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full translate-x-5 transition-transform'
-                      : 'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full translate-x-0 transition-transform'
-                  }
-                />
-              </button>
+              <ToggleSwitch
+                checked={esPedido}
+                onChange={(v) => setValue('es_pedido', v)}
+                label="Producto por pedido"
+                activeColor="bg-gold"
+              />
             </div>
 
             {/* Disponible */}
@@ -533,23 +523,12 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
                   Visible en la tienda para los clientes
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setValue('disponible', !disponible)}
-                className={
-                  disponible
-                    ? 'relative w-10 h-5 rounded-full bg-success transition-colors'
-                    : 'relative w-10 h-5 rounded-full bg-kdb-border transition-colors'
-                }
-              >
-                <span
-                  className={
-                    disponible
-                      ? 'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full translate-x-5 transition-transform'
-                      : 'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full translate-x-0 transition-transform'
-                  }
-                />
-              </button>
+              <ToggleSwitch
+                checked={disponible}
+                onChange={(v) => setValue('disponible', v)}
+                label="Disponible en la tienda"
+                activeColor="bg-success"
+              />
             </div>
 
             {/* Destacado */}
@@ -562,23 +541,12 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
                   Aparece en la sección de productos destacados
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setValue('destacado', !destacado)}
-                className={
-                  destacado
-                    ? 'relative w-10 h-5 rounded-full bg-gold transition-colors'
-                    : 'relative w-10 h-5 rounded-full bg-kdb-border transition-colors'
-                }
-              >
-                <span
-                  className={
-                    destacado
-                      ? 'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full translate-x-5 transition-transform'
-                      : 'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full translate-x-0 transition-transform'
-                  }
-                />
-              </button>
+              <ToggleSwitch
+                checked={destacado}
+                onChange={(v) => setValue('destacado', v)}
+                label="Producto destacado"
+                activeColor="bg-gold"
+              />
             </div>
           </div>
         </div>
