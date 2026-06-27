@@ -330,7 +330,13 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
                 type="number"
                 step="0.01"
                 min="0"
-                {...register('precio_original', { valueAsNumber: true })}
+                {...register('precio_original', {
+                  setValueAs: (v) => {
+                    if (v === '' || v === null || v === undefined) return null;
+                    const n = parseFloat(v);
+                    return Number.isNaN(n) ? null : n;
+                  },
+                })}
                 className={inputClasses}
                 placeholder="550.00"
               />
@@ -352,7 +358,7 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
               </label>
               <select
                 id="categoria_id"
-                {...register('categoria_id')}
+                {...register('categoria_id', { setValueAs: (v) => (v === '' ? null : v) })}
                 className={inputClasses}
               >
                 <option value="">Seleccionar categoría</option>
@@ -371,7 +377,7 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
               </label>
               <select
                 id="marca_id"
-                {...register('marca_id')}
+                {...register('marca_id', { setValueAs: (v) => (v === '' ? null : v) })}
                 className={inputClasses}
               >
                 <option value="">Seleccionar marca</option>
@@ -459,7 +465,12 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
                 id="stock"
                 type="number"
                 min="0"
-                {...register('stock', { valueAsNumber: true })}
+                {...register('stock', {
+                  setValueAs: (v) => {
+                    const n = parseInt(v, 10);
+                    return Number.isNaN(n) ? 0 : n;
+                  },
+                })}
                 className={inputClasses}
                 placeholder="0"
               />
