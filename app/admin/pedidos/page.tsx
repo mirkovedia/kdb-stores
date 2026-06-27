@@ -9,44 +9,29 @@ import {
   Save,
   Loader2,
 } from 'lucide-react';
-import { cn, formatPrice, ESTADOS_PEDIDO } from '@/lib/utils';
+import {
+  cn,
+  formatPrice,
+  ESTADOS_PEDIDO,
+  ESTADO_COLORS,
+  ESTADO_LABELS,
+} from '@/lib/utils';
 import type { EstadoPedido, Pedido, PedidoItem } from '@/types';
 import { createClient } from '@/lib/supabase/client';
+import { useAdminFeedback } from '@/components/admin/AdminFeedback';
 
 type FilterTab = 'todos' | EstadoPedido;
 
 const filterTabs: { value: FilterTab; label: string }[] = [
   { value: 'todos', label: 'Todos' },
-  { value: 'pendiente', label: 'Pendiente' },
-  { value: 'confirmado', label: 'Confirmado' },
-  { value: 'en_proceso', label: 'En Proceso' },
-  { value: 'listo', label: 'Listo' },
-  { value: 'enviado', label: 'Enviado' },
-  { value: 'entregado', label: 'Entregado' },
-  { value: 'cancelado', label: 'Cancelado' },
+  ...ESTADOS_PEDIDO.map((e) => ({
+    value: e.value as FilterTab,
+    label: ESTADO_LABELS[e.value],
+  })),
 ];
 
-const estadoColors: Record<EstadoPedido, { bg: string; text: string }> = {
-  pendiente: { bg: 'bg-yellow-500/15', text: 'text-yellow-400' },
-  confirmado: { bg: 'bg-blue-500/15', text: 'text-blue-400' },
-  en_proceso: { bg: 'bg-purple-500/15', text: 'text-purple-400' },
-  listo: { bg: 'bg-indigo-500/15', text: 'text-indigo-400' },
-  enviado: { bg: 'bg-orange-500/15', text: 'text-orange-400' },
-  entregado: { bg: 'bg-green-500/15', text: 'text-green-400' },
-  cancelado: { bg: 'bg-red-500/15', text: 'text-red-400' },
-};
-
-const estadoLabels: Record<EstadoPedido, string> = {
-  pendiente: 'Pendiente',
-  confirmado: 'Confirmado',
-  en_proceso: 'En Proceso',
-  listo: 'Listo',
-  enviado: 'Enviado',
-  entregado: 'Entregado',
-  cancelado: 'Cancelado',
-};
-
 export default function AdminPedidosPage() {
+  const { toast } = useAdminFeedback();
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<FilterTab>('todos');
@@ -124,7 +109,7 @@ export default function AdminPedidosPage() {
         .insert({
           pedido_id: pedidoId,
           estado: newState,
-          nota: note || `Estado del pedido actualizado a ${estadoLabels[newState]}`
+          nota: note || `Estado del pedido actualizado a ${ESTADO_LABELS[newState]}`
         });
 
       if (historyError) throw historyError;
@@ -135,7 +120,7 @@ export default function AdminPedidosPage() {
         )
       );
 
-      alert(`Pedido actualizado a: ${estadoLabels[newState]}`);
+      toast(`Pedido actualizado a: ${ESTADO_LABELS[newState]}`, 'success');
 
       // Clear update inputs
       setUpdateState((prev) => {
@@ -149,7 +134,7 @@ export default function AdminPedidosPage() {
         return next;
       });
     } catch (err) {
-      alert('Error al actualizar el estado del pedido');
+      toast('Error al actualizar el estado del pedido', 'error');
       console.error(err);
     }
   }
@@ -182,7 +167,7 @@ export default function AdminPedidosPage() {
         </h1>
         <p className="text-sm text-text-secondary mt-1">
           {filteredPedidos.length} pedido{filteredPedidos.length !== 1 ? 's' : ''}
-          {activeFilter !== 'todos' && ` — ${estadoLabels[activeFilter as EstadoPedido]}`}
+          {activeFilter !== 'todos' && ` — ${ESTADO_LABELS[activeFilter as EstadoPedido]}`}
         </p>
       </div>
 
@@ -245,7 +230,7 @@ export default function AdminPedidosPage() {
           </thead>
           <tbody className="divide-y divide-kdb-border">
             {filteredPedidos.map((pedido) => {
-              const color = estadoColors[pedido.estado];
+              const color = ESTADO_COLORS[pedido.estado];
               const isExpanded = expandedId === pedido.id;
 
               return (
@@ -294,7 +279,7 @@ export default function AdminPedidosPage() {
                           color.text
                         )}
                       >
-                        {estadoLabels[pedido.estado]}
+                        {ESTADO_LABELS[pedido.estado]}
                       </span>
                     </td>
                      <td className="px-4 py-4 text-sm text-text-primary font-medium whitespace-nowrap hidden sm:table-cell">

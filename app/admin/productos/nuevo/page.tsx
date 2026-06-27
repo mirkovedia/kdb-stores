@@ -10,12 +10,14 @@ import { productoSchema, type ProductoFormData } from '@/lib/validations';
 import { slugify } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 import { ImageUploader } from '@/components/admin/ImageUploader';
+import { useAdminFeedback } from '@/components/admin/AdminFeedback';
 
 const TALLAS_ROPA = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const TALLAS_CALZADO = ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
 
 export default function NuevoProductoPage() {
   const router = useRouter();
+  const { toast } = useAdminFeedback();
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categorias, setCategorias] = useState<{ id: string; nombre: string }[]>([]);
@@ -97,10 +99,14 @@ export default function NuevoProductoPage() {
       const { error } = await supabase.from('productos').insert(finalData);
       if (error) throw error;
 
-      alert('Producto guardado exitosamente');
+      toast('Producto guardado exitosamente', 'success');
       router.push('/admin/productos');
     } catch (err) {
-      alert('Error al guardar el producto: ' + (err instanceof Error ? err.message : 'Error desconocido'));
+      toast(
+        'Error al guardar el producto: ' +
+          (err instanceof Error ? err.message : 'Error desconocido'),
+        'error'
+      );
       console.error(err);
     } finally {
       setIsSubmitting(false);

@@ -12,29 +12,9 @@ import {
   BarChart3,
   Loader2,
 } from 'lucide-react';
-import { cn, formatPrice } from '@/lib/utils';
-import type { EstadoPedido, Pedido } from '@/types';
+import { cn, formatPrice, ESTADO_COLORS, ESTADO_LABELS } from '@/lib/utils';
+import type { Pedido } from '@/types';
 import { createClient } from '@/lib/supabase/client';
-
-const estadoColors: Record<EstadoPedido, { bg: string; text: string }> = {
-  pendiente: { bg: 'bg-yellow-500/15', text: 'text-yellow-400' },
-  confirmado: { bg: 'bg-blue-500/15', text: 'text-blue-400' },
-  en_proceso: { bg: 'bg-purple-500/15', text: 'text-purple-400' },
-  listo: { bg: 'bg-cyan-500/15', text: 'text-cyan-400' },
-  enviado: { bg: 'bg-orange-500/15', text: 'text-orange-400' },
-  entregado: { bg: 'bg-green-500/15', text: 'text-green-400' },
-  cancelado: { bg: 'bg-red-500/15', text: 'text-red-400' },
-};
-
-const estadoLabels: Record<EstadoPedido, string> = {
-  pendiente: 'Pendiente',
-  confirmado: 'Confirmado',
-  en_proceso: 'En Proceso',
-  listo: 'Listo',
-  enviado: 'Enviado',
-  entregado: 'Entregado',
-  cancelado: 'Cancelado',
-};
 
 export default function AdminDashboardPage() {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
@@ -329,7 +309,7 @@ export default function AdminDashboardPage() {
             </thead>
             <tbody className="divide-y divide-kdb-border">
               {pedidos.map((pedido) => {
-                const color = estadoColors[pedido.estado];
+                const color = ESTADO_COLORS[pedido.estado];
                 return (
                   <tr
                     key={pedido.id}
@@ -355,7 +335,7 @@ export default function AdminDashboardPage() {
                           color.text
                         )}
                       >
-                        {estadoLabels[pedido.estado]}
+                        {ESTADO_LABELS[pedido.estado]}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap hidden sm:table-cell">

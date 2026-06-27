@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
@@ -15,11 +15,8 @@ import {
   LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-
-
+import { AdminFeedbackProvider } from '@/components/admin/AdminFeedback';
 
 interface NavItem {
   href: string;
@@ -54,27 +51,24 @@ export default function AdminLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
-
   const router = useRouter();
-  useEffect(() => {
-    async function checkAuth() {
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push('/admin/login');
-      }
-    }
-    checkAuth();
-  }, [router]);
+
+  // El login no usa el shell con sidebar (la protección la hace el proxy server-side).
+  const isLoginRoute = pathname === '/admin/login';
 
   async function handleSignOut() {
     try {
       const supabase = createClient();
       await supabase.auth.signOut();
       router.push('/admin/login');
+      router.refresh();
     } catch (err) {
       console.error('Error signing out:', err);
     }
+  }
+
+  if (isLoginRoute) {
+    return <AdminFeedbackProvider>{children}</AdminFeedbackProvider>;
   }
 
   function isActive(item: NavItem): boolean {
@@ -85,6 +79,7 @@ export default function AdminLayout({
   }
 
   return (
+    <AdminFeedbackProvider>
     <div className="min-h-screen bg-kdb-bg flex">
       {/* Mobile overlay */}
       <AnimatePresence>
@@ -202,5 +197,6 @@ export default function AdminLayout({
         </main>
       </div>
     </div>
+    </AdminFeedbackProvider>
   );
 }

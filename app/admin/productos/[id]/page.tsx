@@ -10,6 +10,7 @@ import { productoSchema, type ProductoFormData } from '@/lib/validations';
 import { slugify } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 import { ImageUploader } from '@/components/admin/ImageUploader';
+import { useAdminFeedback } from '@/components/admin/AdminFeedback';
 
 const TALLAS_ROPA = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const TALLAS_CALZADO = ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
@@ -22,6 +23,7 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
   const unwrappedParams = use(params);
   const productId = unwrappedParams.id;
   const router = useRouter();
+  const { toast, confirm } = useAdminFeedback();
 
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -98,7 +100,7 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
         setPendingNotifs(count || 0);
       } catch (err) {
         console.error('Error loading product for editing:', err);
-        alert('Error al cargar datos del producto');
+        toast('Error al cargar datos del producto', 'error');
         router.push('/admin/productos');
       } finally {
         setLoading(false);
@@ -108,7 +110,7 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
     if (productId) {
       loadData();
     }
-  }, [productId, reset, router]);
+  }, [productId, reset, router, toast]);
 
   function handleNombreChange(e: React.ChangeEvent<HTMLInputElement>) {
     const nombre = e.target.value;
@@ -130,7 +132,12 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
 
   async function handleSendNotifs() {
     if (pendingNotifs === 0) return;
-    if (!confirm(`¿Enviar el aviso de restock a ${pendingNotifs} interesado(s)?`)) return;
+    const ok = await confirm({
+      title: 'Notificar restock',
+      message: `¿Enviar el aviso de que el producto llegó a ${pendingNotifs} interesado(s)?`,
+      confirmLabel: 'Enviar avisos',
+    });
+    if (!ok) return;
     setSendingNotifs(true);
     try {
       const res = await fetch('/api/notificaciones/enviar', {
@@ -140,10 +147,14 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
       });
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || 'Error al enviar');
-      alert(`Avisos enviados: ${result.enviados} de ${result.total ?? pendingNotifs}`);
+      toast(`Avisos enviados: ${result.enviados} de ${result.total ?? pendingNotifs}`, 'success');
       setPendingNotifs(0);
     } catch (err) {
-      alert('Error al enviar los avisos: ' + (err instanceof Error ? err.message : 'desconocido'));
+      toast(
+        'Error al enviar los avisos: ' +
+          (err instanceof Error ? err.message : 'desconocido'),
+        'error'
+      );
     } finally {
       setSendingNotifs(false);
     }
@@ -165,10 +176,14 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
 
       if (error) throw error;
 
-      alert('Producto actualizado exitosamente');
+      toast('Producto actualizado exitosamente', 'success');
       router.push('/admin/productos');
     } catch (err) {
-      alert('Error al actualizar el producto: ' + (err instanceof Error ? err.message : 'Error desconocido'));
+      toast(
+        'Error al actualizar el producto: ' +
+          (err instanceof Error ? err.message : 'Error desconocido'),
+        'error'
+      );
       console.error(err);
     } finally {
       setIsSubmitting(false);

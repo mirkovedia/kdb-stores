@@ -15,8 +15,10 @@ import {
 import { cn, formatPrice, PLACEHOLDER_IMAGES } from '@/lib/utils';
 import type { Producto } from '@/types';
 import { createClient } from '@/lib/supabase/client';
+import { useAdminFeedback } from '@/components/admin/AdminFeedback';
 
 export default function AdminProductosPage() {
+  const { toast, confirm } = useAdminFeedback();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -69,7 +71,7 @@ export default function AdminProductosPage() {
         prev.map((p) => (p.id === id ? { ...p, disponible: !currentVal } : p))
       );
     } catch (err) {
-      alert('Error al actualizar disponibilidad');
+      toast('Error al actualizar disponibilidad', 'error');
       console.error(err);
     }
   }
@@ -87,22 +89,28 @@ export default function AdminProductosPage() {
         prev.map((p) => (p.id === id ? { ...p, destacado: !currentVal } : p))
       );
     } catch (err) {
-      alert('Error al actualizar destacado');
+      toast('Error al actualizar destacado', 'error');
       console.error(err);
     }
   }
 
-  async function handleDelete(id: string) {
-    if (confirm('¿Estás seguro de eliminar este producto?')) {
-      try {
-        const supabase = createClient();
-        const { error } = await supabase.from('productos').delete().eq('id', id);
-        if (error) throw error;
-        setProductos((prev) => prev.filter((p) => p.id !== id));
-      } catch (err) {
-        alert('Error al eliminar producto');
-        console.error(err);
-      }
+  async function handleDelete(producto: Producto) {
+    const ok = await confirm({
+      title: 'Eliminar producto',
+      message: `¿Seguro que querés eliminar "${producto.nombre}"? Esta acción no se puede deshacer.`,
+      confirmLabel: 'Eliminar',
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from('productos').delete().eq('id', producto.id);
+      if (error) throw error;
+      setProductos((prev) => prev.filter((p) => p.id !== producto.id));
+      toast('Producto eliminado', 'success');
+    } catch (err) {
+      toast('Error al eliminar producto', 'error');
+      console.error(err);
     }
   }
 
@@ -295,7 +303,7 @@ export default function AdminProductosPage() {
                       <Edit2 className="w-4 h-4" />
                     </Link>
                     <button
-                      onClick={() => handleDelete(producto.id)}
+                      onClick={() => handleDelete(producto)}
                       className="p-1.5 text-text-secondary hover:text-danger transition-colors"
                       title="Eliminar"
                     >
