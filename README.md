@@ -189,6 +189,12 @@ proxy.ts          Protección de /admin (Next 16)
 
 ---
 
+## Licencia
+
+[MIT](LICENSE) © 2026 Mirko Vedia
+
+---
+
 ## Nota sobre Next.js 16
 
 Esta versión introduce cambios importantes respecto de versiones anteriores: `middleware.ts` pasó a ser `proxy.ts`, y varias APIs y convenciones cambiaron. Antes de modificar nada del framework, conviene leer las guías en `node_modules/next/dist/docs/` — es lo que indica el `AGENTS.md` del repo.
