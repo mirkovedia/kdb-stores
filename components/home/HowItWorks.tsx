@@ -3,6 +3,7 @@
 import { motion, Variants } from 'framer-motion';
 import { ShoppingBag, FileText, Truck } from 'lucide-react';
 import { SectionTitle } from '@/components/ui/SectionTitle';
+import { SneakerSketch } from '@/components/ui/SneakerSketch';
 import { getWhatsAppLink } from '@/lib/utils';
 
 interface Step {
@@ -54,8 +55,13 @@ const stepVariants: Variants = {
 
 export function HowItWorks() {
   return (
-    <section id="como-funciona" className="py-16 md:py-24 bg-kdb-card">
-      <div className="container-kdb">
+    <section id="como-funciona" className="relative py-16 md:py-24 bg-kdb-card overflow-hidden">
+      {/* Sneaker line-art que se dibuja solo, como marca de agua */}
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[360px] lg:w-[480px] text-gold/15 -rotate-12 pointer-events-none hidden md:block animate-float">
+        <SneakerSketch className="w-full h-auto" />
+      </div>
+
+      <div className="container-kdb relative z-10">
         <SectionTitle
           title="¿CÓMO FUNCIONA?"
           subtitle="En 3 simples pasos tienes tu pedido"

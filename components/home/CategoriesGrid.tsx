@@ -30,7 +30,7 @@ const categories: CategoryItem[] = [
   {
     name: 'Accesorios',
     slug: 'accesorios',
-    image: 'https://images.unsplash.com/photo-1588850561407-ed78c334e67a?w=600',
+    image: 'https://images.unsplash.com/photo-1521369909029-2afed882baee?w=600',
   },
 ];
 
@@ -86,6 +86,9 @@ export function CategoriesGrid() {
 
                   {/* Dark overlay */}
                   <div className="absolute inset-0 bg-black/45 group-hover:bg-black/35 transition-colors duration-300" />
+
+                  {/* Destello al pasar el mouse */}
+                  <span className="shine-sweep" aria-hidden="true" />
 
                   {/* Category Name & Action - Glassmorphism card */}
                   <div className="absolute inset-0 flex items-center justify-center p-4">

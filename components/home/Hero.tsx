@@ -1,8 +1,31 @@
 'use client';
 
-import { motion, Variants } from 'framer-motion';
+import { useCallback } from 'react';
+import {
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  Variants,
+} from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { GoldButton } from '@/components/ui/GoldButton';
+
+// Posiciones fijas (no aleatorias) para evitar mismatch de hidratación
+const EMBERS = [
+  { left: '6%', size: 4, delay: 0, duration: 13 },
+  { left: '14%', size: 3, delay: 4.5, duration: 16 },
+  { left: '22%', size: 5, delay: 2, duration: 12 },
+  { left: '31%', size: 3, delay: 7, duration: 15 },
+  { left: '39%', size: 4, delay: 1, duration: 14 },
+  { left: '47%', size: 3, delay: 5.5, duration: 17 },
+  { left: '55%', size: 5, delay: 3, duration: 12.5 },
+  { left: '63%', size: 3, delay: 8, duration: 15.5 },
+  { left: '71%', size: 4, delay: 0.5, duration: 13.5 },
+  { left: '79%', size: 3, delay: 6, duration: 16.5 },
+  { left: '87%', size: 5, delay: 2.5, duration: 12 },
+  { left: '94%', size: 3, delay: 9, duration: 14.5 },
+];
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -25,16 +48,42 @@ const itemVariants: Variants = {
 };
 
 export function Hero() {
+  // Parallax del fondo siguiendo el mouse
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const bgX = useSpring(useTransform(mouseX, [-0.5, 0.5], [12, -12]), {
+    stiffness: 50,
+    damping: 20,
+  });
+  const bgY = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), {
+    stiffness: 50,
+    damping: 20,
+  });
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLElement>) => {
+      const { innerWidth, innerHeight } = window;
+      mouseX.set(e.clientX / innerWidth - 0.5);
+      mouseY.set(e.clientY / innerHeight - 0.5);
+    },
+    [mouseX, mouseY],
+  );
+
   return (
-    <section className="relative h-screen w-full overflow-hidden bg-black">
-      {/* Background image with Ken Burns effect */}
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-100 animate-kenburns"
-        style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1556906781-9a412961c28c?w=1920&q=80')",
-        }}
-      />
+    <section
+      onMouseMove={handleMouseMove}
+      className="relative h-screen w-full overflow-hidden bg-black"
+    >
+      {/* Background image with Ken Burns effect + mouse parallax */}
+      <motion.div style={{ x: bgX, y: bgY }} className="absolute -inset-4">
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-100 animate-kenburns"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1556906781-9a412961c28c?w=1920&q=80')",
+          }}
+        />
+      </motion.div>
 
       {/* Dark overlay gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/40 to-black/90" />
@@ -44,6 +93,23 @@ export function Hero() {
 
       {/* Subtle grain texture */}
       <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml,%3Csvg viewBox=%220 0 256 256%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E')]" />
+
+      {/* Gold ember particles rising */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-[5]" aria-hidden="true">
+        {EMBERS.map((ember, i) => (
+          <span
+            key={i}
+            className="ember"
+            style={{
+              left: ember.left,
+              width: ember.size,
+              height: ember.size,
+              animationDelay: `${ember.delay}s`,
+              animationDuration: `${ember.duration}s`,
+            }}
+          />
+        ))}
+      </div>
 
       {/* Drops badge - top right */}
       <motion.div

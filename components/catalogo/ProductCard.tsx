@@ -16,6 +16,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   const hasDiscount = product.precio_original && product.precio_original > product.precio;
+  const secondImage = product.imagenes[1];
 
   return (
     <motion.div
@@ -37,10 +38,31 @@ export function ProductCard({ product }: ProductCardProps) {
               src={product.imagenes[0] || '/placeholder.png'}
               alt={product.nombre}
               fill
-              className="object-cover transition-transform duration-700 ease-out group-hover:scale-108"
+              className={cn(
+                'object-cover transition-all duration-700 ease-out group-hover:scale-108',
+                secondImage && isHovered && 'opacity-0'
+              )}
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
               unoptimized
             />
+
+            {/* Segunda imagen: crossfade en hover */}
+            {secondImage && (
+              <Image
+                src={secondImage}
+                alt={`${product.nombre} — vista alternativa`}
+                fill
+                className={cn(
+                  'object-cover transition-all duration-700 ease-out group-hover:scale-108',
+                  isHovered ? 'opacity-100' : 'opacity-0'
+                )}
+                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                unoptimized
+              />
+            )}
+
+            {/* Destello al pasar el mouse */}
+            <span className="shine-sweep" aria-hidden="true" />
 
             {/* PEDIDO badge */}
             {product.es_pedido && (

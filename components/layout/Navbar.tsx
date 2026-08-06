@@ -120,7 +120,7 @@ export function Navbar() {
           )}>
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 group">
-              <div className="relative w-8 h-8 md:w-9 h-9 overflow-hidden border border-gold/20 rounded-sm bg-black shrink-0">
+              <div className="relative w-8 h-8 md:w-9 md:h-9 overflow-hidden border border-gold/20 rounded-sm bg-black shrink-0">
                 <Image
                   src="/kdblogo.jpeg"
                   alt="KDB Logo"

@@ -120,6 +120,41 @@ body {
   }
 }
 
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes ember-rise {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.7;
+  }
+  70% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-105vh) scale(0.35);
+    opacity: 0;
+  }
+}
+
+@keyframes shine {
+  from {
+    transform: translateX(-150%) skewX(-18deg);
+  }
+  to {
+    transform: translateX(400%) skewX(-18deg);
+  }
+}
+
 .animate-pulse-gold {
   animation: pulse-gold 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
@@ -134,6 +169,59 @@ body {
 
 .animate-kenburns {
   animation: kenburns 25s ease-in-out infinite;
+}
+
+.animate-marquee {
+  animation: marquee 32s linear infinite;
+}
+
+.animate-marquee-slow {
+  animation: marquee 55s linear infinite;
+}
+
+.animate-marquee-reverse {
+  animation: marquee 55s linear infinite reverse;
+}
+
+.marquee-group:hover .animate-marquee,
+.marquee-group:hover .animate-marquee-slow,
+.marquee-group:hover .animate-marquee-reverse {
+  animation-play-state: paused;
+}
+
+/* Gold ember particles (Hero) */
+.ember {
+  position: absolute;
+  bottom: -12px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, #E4C06A 0%, rgba(201, 168, 76, 0.6) 60%, transparent 100%);
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation: ember-rise linear infinite;
+}
+
+/* Shine sweep on hover (product images) */
+.shine-sweep {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 35%;
+  transform: translateX(-150%) skewX(-18deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.group:hover .shine-sweep {
+  animation: shine 0.85s ease-out;
+}
+
+/* Ghost outline text (marquees) */
+.text-outline-gold {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(201, 168, 76, 0.45);
 }
 
 /* Skeleton loading */
@@ -181,5 +269,28 @@ body {
 @media (min-width: 1280px) {
   .container-kdb {
     padding: 0 4rem;
+  }
+}
+
+/* Accessibility: respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-kenburns,
+  .animate-marquee,
+  .animate-marquee-slow,
+  .animate-marquee-reverse,
+  .animate-pulse-gold,
+  .animate-float,
+  .animate-float-subtle,
+  .ember,
+  .group:hover .shine-sweep {
+    animation: none;
+  }
+
+  .ember {
+    display: none;
   }
 }

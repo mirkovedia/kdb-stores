@@ -3,6 +3,7 @@
 import { motion, Variants } from 'framer-motion';
 import { SectionTitle } from '@/components/ui/SectionTitle';
 import { GoldButton } from '@/components/ui/GoldButton';
+import { SneakerSketch } from '@/components/ui/SneakerSketch';
 import { getWhatsAppLink } from '@/lib/utils';
 import { ShieldCheck, Compass, HelpCircle, Heart, DollarSign, ArrowRight } from 'lucide-react';
 
@@ -53,9 +54,14 @@ export default function NosotrosPage() {
   const whatsappUrl = getWhatsAppLink('Hola KDB! Me gustaría recibir asesoría sobre sus drops e importaciones.');
 
   return (
-    <div className="bg-kdb-bg text-text-primary py-12 md:py-24">
-      <div className="container-kdb max-w-5xl mx-auto space-y-20 md:space-y-32">
-        
+    <div className="relative bg-kdb-bg text-text-primary py-12 md:py-24 overflow-hidden">
+      {/* Sneaker line-art de fondo */}
+      <div className="absolute left-0 top-16 w-[340px] lg:w-[440px] text-gold/10 rotate-12 pointer-events-none hidden lg:block">
+        <SneakerSketch className="w-full h-auto" />
+      </div>
+
+      <div className="container-kdb max-w-5xl mx-auto space-y-20 md:space-y-32 relative z-10">
+
         {/* Hero Section */}
         <motion.div
           initial="hidden"

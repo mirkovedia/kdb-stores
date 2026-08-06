@@ -62,6 +62,7 @@ export function GoldButton({
         target="_blank"
         rel="noopener noreferrer"
         className={baseClasses}
+        onClick={onClick}
       >
         {children}
       </a>
@@ -70,7 +71,7 @@ export function GoldButton({
 
   if (href) {
     return (
-      <Link href={href} className={baseClasses}>
+      <Link href={href} className={baseClasses} onClick={onClick}>
         {children}
       </Link>
     );
