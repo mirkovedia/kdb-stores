@@ -1,4 +1,4 @@
-import React from 'react';
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
 interface SectionTitleProps {
@@ -6,43 +6,54 @@ interface SectionTitleProps {
   subtitle?: string;
   className?: string;
   align?: 'left' | 'center';
+  /** Link opcional a la derecha del título (ej. "Ver todo"). */
+  action?: { label: string; href: string };
 }
 
 export function SectionTitle({
   title,
   subtitle,
   className,
-  align = 'left',
+  align = 'center',
+  action,
 }: SectionTitleProps) {
   return (
     <div
       className={cn(
-        'mb-10',
-        align === 'center' && 'text-center',
+        'mb-10 flex flex-col gap-3 md:mb-14',
+        align === 'center'
+          ? 'items-center text-center'
+          : 'items-start md:flex-row md:items-baseline md:justify-between',
         className,
       )}
     >
-      <h2
-        className={cn(
-          'font-[family-name:var(--font-bebas-neue)] text-4xl md:text-5xl uppercase tracking-wider text-gold-gradient inline-block',
-        )}
-      >
-        {title}
-      </h2>
-
       <div
         className={cn(
-          'mt-3 h-[2px] w-24',
-          align === 'center'
-            ? 'mx-auto bg-gradient-to-r from-transparent via-gold to-transparent'
-            : 'bg-gradient-to-r from-gold via-gold/20 to-transparent',
+          'flex flex-col gap-3',
+          align === 'center' && 'items-center',
         )}
-      />
+      >
+        <h2 className="text-section text-ink">{title}</h2>
 
-      {subtitle && (
-        <p className="mt-4 max-w-xl text-sm md:text-base text-text-secondary leading-relaxed">
-          {subtitle}
-        </p>
+        {subtitle && (
+          <p
+            className={cn(
+              'max-w-xl text-sm leading-relaxed text-ink-muted',
+              align === 'center' && 'mx-auto',
+            )}
+          >
+            {subtitle}
+          </p>
+        )}
+      </div>
+
+      {action && (
+        <Link
+          href={action.href}
+          className="text-nav link-underline shrink-0 text-ink-muted transition-colors hover:text-ink"
+        >
+          {action.label}
+        </Link>
       )}
     </div>
   );

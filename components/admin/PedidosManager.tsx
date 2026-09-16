@@ -15,6 +15,7 @@ import {
   ESTADOS_PEDIDO,
   ESTADO_COLORS,
   ESTADO_LABELS,
+  TH_CLASSES,
 } from '@/lib/utils';
 import type { EstadoPedido, Pedido, PedidoItem } from '@/types';
 import { createClient } from '@/lib/supabase/client';
@@ -175,10 +176,10 @@ export function PedidosManager({
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-[family-name:var(--font-bebas-neue)] text-text-primary tracking-wide">
+        <h1 className="text-xl font-bold uppercase tracking-[0.15em] text-ink">
           Gestión de Pedidos
         </h1>
-        <p className="text-sm text-text-secondary mt-1">
+        <p className="mt-2 text-sm text-ink-muted">
           {filteredPedidos.length} pedido{filteredPedidos.length !== 1 ? 's' : ''}
           {activeFilter !== 'todos' && ` — ${ESTADO_LABELS[activeFilter as EstadoPedido]}`}
         </p>
@@ -198,8 +199,8 @@ export function PedidosManager({
               className={cn(
                 'px-4 py-2 rounded-md text-sm font-medium transition-colors',
                 activeFilter === tab.value
-                  ? 'bg-gold text-kdb-bg'
-                  : 'bg-kdb-card border border-kdb-border text-text-secondary hover:text-text-primary hover:border-gold/50'
+                  ? 'border border-ink bg-ink text-ink-inverse'
+                  : 'border border-line bg-surface text-ink-muted hover:border-ink hover:text-ink'
               )}
             >
               {tab.label}
@@ -210,27 +211,27 @@ export function PedidosManager({
       </div>
 
       {/* Orders Table */}
-      <div className="bg-kdb-card border border-kdb-border rounded-md overflow-x-auto">
+      <div className="overflow-x-auto rounded-md border border-line bg-surface">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-kdb-border">
-              <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider w-8">
+            <tr className="border-b border-line bg-surface-muted">
+              <th className={cn(TH_CLASSES, "w-8")}>
                 <span className="sr-only">Expandir</span>
               </th>
               <SortableHeader label="Número" sortKey="numero" sort={sort} onSort={handleSort} />
-              <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider">
+              <th className={TH_CLASSES}>
                 Cliente
               </th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider hidden sm:table-cell">
+              <th className={cn(TH_CLASSES, "hidden sm:table-cell")}>
                 WhatsApp
               </th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider hidden md:table-cell">
+              <th className={cn(TH_CLASSES, "hidden md:table-cell")}>
                 Producto
               </th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider hidden lg:table-cell">
+              <th className={cn(TH_CLASSES, "hidden lg:table-cell")}>
                 Talla
               </th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider">
+              <th className={TH_CLASSES}>
                 Estado
               </th>
               <SortableHeader
@@ -249,7 +250,7 @@ export function PedidosManager({
               />
             </tr>
           </thead>
-          <tbody className="divide-y divide-kdb-border">
+          <tbody className="divide-y divide-line">
             {pagedPedidos.map((pedido) => {
               const color = ESTADO_COLORS[pedido.estado];
               const isExpanded = expandedId === pedido.id;
@@ -258,7 +259,7 @@ export function PedidosManager({
                 <Fragment key={pedido.id}>
                   {/* Main row */}
                   <tr
-                    className="hover:bg-kdb-elevated transition-colors cursor-pointer"
+                    className="cursor-pointer transition-colors hover:bg-surface-muted"
                     onClick={() => toggleExpand(pedido.id)}
                   >
                     <td className="px-4 py-4">
@@ -271,7 +272,7 @@ export function PedidosManager({
                         aria-expanded={isExpanded}
                         aria-controls={`pedido-detalle-${pedido.id}`}
                         aria-label={`${isExpanded ? 'Contraer' : 'Expandir'} pedido ${pedido.numero_pedido}`}
-                        className="text-text-muted hover:text-text-primary rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-gold transition-colors"
+                        className="rounded-sm text-ink-subtle transition-colors hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-ink"
                       >
                         {isExpanded ? (
                           <ChevronUp className="w-4 h-4" />
@@ -280,13 +281,13 @@ export function PedidosManager({
                         )}
                       </button>
                     </td>
-                    <td className="px-4 py-4 text-sm font-medium text-text-primary whitespace-nowrap">
+                    <td className="whitespace-nowrap px-4 py-4 text-sm font-medium text-ink">
                       {pedido.numero_pedido}
                     </td>
-                    <td className="px-4 py-4 text-sm text-text-secondary whitespace-nowrap">
+                    <td className="whitespace-nowrap px-4 py-4 text-sm text-ink-muted">
                       {pedido.cliente_nombre}
                     </td>
-                    <td className="px-4 py-4 text-sm text-text-secondary whitespace-nowrap hidden sm:table-cell">
+                    <td className="hidden whitespace-nowrap px-4 py-4 text-sm text-ink-muted sm:table-cell">
                       <a
                         href={getWhatsAppUrl(pedido.cliente_whatsapp, pedido)}
                         target="_blank"
@@ -298,10 +299,10 @@ export function PedidosManager({
                         {pedido.cliente_whatsapp}
                       </a>
                     </td>
-                    <td className="px-4 py-4 text-sm text-text-secondary whitespace-nowrap hidden md:table-cell max-w-[180px] truncate">
+                    <td className="hidden max-w-[180px] truncate whitespace-nowrap px-4 py-4 text-sm text-ink-muted md:table-cell">
                       {pedido.producto_nombre}
                     </td>
-                    <td className="px-4 py-4 text-sm text-text-secondary whitespace-nowrap hidden lg:table-cell">
+                    <td className="hidden whitespace-nowrap px-4 py-4 text-sm text-ink-muted lg:table-cell">
                       {pedido.talla}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
@@ -315,65 +316,65 @@ export function PedidosManager({
                         {ESTADO_LABELS[pedido.estado]}
                       </span>
                     </td>
-                     <td className="px-4 py-4 text-sm text-text-primary font-medium whitespace-nowrap hidden sm:table-cell">
+                     <td className="hidden whitespace-nowrap px-4 py-4 text-sm font-medium text-ink sm:table-cell">
                       {formatPrice(pedido.total || 0)}
                     </td>
-                    <td className="px-4 py-4 text-sm text-text-secondary whitespace-nowrap hidden lg:table-cell">
+                    <td className="hidden whitespace-nowrap px-4 py-4 text-sm text-ink-muted lg:table-cell">
                       {pedido.created_at.substring(0, 10)}
                     </td>
                   </tr>
 
                   {/* Expanded detail */}
                   {isExpanded && (
-                    <tr id={`pedido-detalle-${pedido.id}`} className="bg-kdb-elevated/50">
+                    <tr id={`pedido-detalle-${pedido.id}`} className="bg-surface-muted">
                       <td colSpan={9} className="px-6 py-5">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Order details */}
                           <div className="space-y-3">
-                            <h3 className="text-sm font-semibold text-gold uppercase tracking-wider">
+                            <h3 className="text-[0.6875rem] font-medium uppercase tracking-[0.12em] text-ink-muted">
                               Detalle del Pedido
                             </h3>
                             <div className="space-y-2 text-sm">
                               <div className="flex justify-between">
-                                <span className="text-text-muted">Producto:</span>
-                                <span className="text-text-primary text-right max-w-[250px] truncate">
+                                <span className="text-ink-subtle">Producto:</span>
+                                <span className="max-w-[250px] truncate text-right text-ink">
                                   {pedido.producto_nombre}
                                 </span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-text-muted">Talla:</span>
-                                <span className="text-text-primary">{pedido.talla}</span>
+                                <span className="text-ink-subtle">Talla:</span>
+                                <span className="text-ink">{pedido.talla}</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-text-muted">Total:</span>
-                                <span className="text-text-primary font-medium">
+                                <span className="text-ink-subtle">Total:</span>
+                                <span className="font-medium text-ink">
                                   {formatPrice(pedido.total || 0)}
                                 </span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-text-muted">Email:</span>
-                                <span className="text-text-primary">{pedido.cliente_email}</span>
+                                <span className="text-ink-subtle">Email:</span>
+                                <span className="text-ink">{pedido.cliente_email}</span>
                               </div>
                               {pedido.notas && (
-                                <div className="pt-2 border-t border-kdb-border">
-                                  <span className="text-text-muted">Notas:</span>
-                                  <p className="text-text-secondary mt-1">{pedido.notas}</p>
+                                <div className="border-t border-line pt-2">
+                                  <span className="text-ink-subtle">Notas:</span>
+                                  <p className="mt-1 text-ink-muted">{pedido.notas}</p>
                                 </div>
                               )}
                             </div>
 
                             {/* Ítems del pedido (multi-producto) */}
                             {itemsMap[pedido.id] && itemsMap[pedido.id].length > 1 && (
-                              <div className="pt-2 border-t border-kdb-border">
-                                <span className="text-text-muted text-sm">Productos:</span>
+                              <div className="border-t border-line pt-2">
+                                <span className="text-sm text-ink-subtle">Productos:</span>
                                 <ul className="mt-1 space-y-1">
                                   {itemsMap[pedido.id].map((it) => (
                                     <li key={it.id} className="flex justify-between text-sm">
-                                      <span className="text-text-secondary truncate pr-2">
+                                      <span className="truncate pr-2 text-ink-muted">
                                         {it.cantidad}× {it.producto_nombre}
                                         {it.talla ? ` (${it.talla})` : ''}
                                       </span>
-                                      <span className="text-text-primary shrink-0">{formatPrice(it.subtotal)}</span>
+                                      <span className="shrink-0 text-ink">{formatPrice(it.subtotal)}</span>
                                     </li>
                                   ))}
                                 </ul>
@@ -394,7 +395,7 @@ export function PedidosManager({
 
                           {/* State update */}
                           <div className="space-y-3">
-                            <h3 className="text-sm font-semibold text-gold uppercase tracking-wider">
+                            <h3 className="text-[0.6875rem] font-medium uppercase tracking-[0.12em] text-ink-muted">
                               Actualizar Estado
                             </h3>
                             <div className="space-y-3">
@@ -406,7 +407,7 @@ export function PedidosManager({
                                     [pedido.id]: e.target.value as EstadoPedido,
                                   }))
                                 }
-                                className="w-full px-4 py-3 bg-kdb-elevated border border-kdb-border rounded-md text-text-primary focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors"
+                                className="w-full rounded-md border border-line bg-surface px-4 py-3 text-sm text-ink transition-colors focus:border-ink focus:outline-none"
                               >
                                 {ESTADOS_PEDIDO.map((estado) => (
                                   <option key={estado.value} value={estado.value}>
@@ -425,7 +426,7 @@ export function PedidosManager({
                                     [pedido.id]: e.target.value,
                                   }))
                                 }
-                                className="w-full px-4 py-3 bg-kdb-elevated border border-kdb-border rounded-md text-text-primary placeholder-text-muted focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors resize-none"
+                                className="w-full resize-none rounded-md border border-line bg-surface px-4 py-3 text-sm text-ink transition-colors placeholder:text-ink-subtle focus:border-ink focus:outline-none"
                               />
 
                               <button
@@ -435,7 +436,7 @@ export function PedidosManager({
                                   e.stopPropagation();
                                   handleStateUpdate(pedido.id);
                                 }}
-                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold text-kdb-bg font-semibold rounded-md hover:bg-gold-light transition-colors text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-kdb-bg disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="btn-solid h-11 rounded-md px-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
                               >
                                 {updatingId === pedido.id ? (
                                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -458,7 +459,7 @@ export function PedidosManager({
 
         {filteredPedidos.length === 0 && (
           <div className="px-6 py-12 text-center">
-            <p className="text-text-muted text-sm">
+            <p className="text-sm text-ink-muted">
               No hay pedidos con este estado.
             </p>
           </div>

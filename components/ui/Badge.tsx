@@ -1,7 +1,12 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 
-type BadgeVariant = 'disponible' | 'agotado' | 'pedido' | 'nuevo';
+export type BadgeVariant =
+  | 'disponible'
+  | 'agotado'
+  | 'pedido'
+  | 'nuevo'
+  | 'oferta';
 
 interface BadgeProps {
   variant: BadgeVariant;
@@ -9,15 +14,16 @@ interface BadgeProps {
   className?: string;
 }
 
+/*
+  Badges monocromos. Solo "agotado" rompe la regla —es información que el
+  cliente no debe pasar por alto— y lo hace en un rojo sobrio, no en alerta.
+*/
 const variantStyles: Record<BadgeVariant, string> = {
-  disponible:
-    'bg-success/15 text-success border-success/30',
-  agotado:
-    'bg-danger/15 text-danger border-danger/30',
-  pedido:
-    'bg-gold/15 text-gold border-gold/30',
-  nuevo:
-    'bg-info/15 text-info border-info/30',
+  disponible: 'border-line text-ink-muted',
+  agotado: 'border-danger/40 text-danger',
+  pedido: 'border-ink text-ink',
+  nuevo: 'border-ink bg-ink text-ink-inverse',
+  oferta: 'border-ink bg-ink text-ink-inverse',
 };
 
 const variantLabels: Record<BadgeVariant, string> = {
@@ -25,13 +31,14 @@ const variantLabels: Record<BadgeVariant, string> = {
   agotado: 'Agotado',
   pedido: 'Por pedido',
   nuevo: 'Nuevo',
+  oferta: 'Oferta',
 };
 
 export function Badge({ variant, children, className }: BadgeProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-sm border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest leading-none',
+        'inline-flex items-center border bg-surface px-2 py-1 text-[0.625rem] font-medium uppercase leading-none tracking-[0.15em]',
         variantStyles[variant],
         className,
       )}

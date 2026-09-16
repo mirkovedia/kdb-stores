@@ -12,6 +12,12 @@ import { createClient } from '@/lib/supabase/client';
 import { ImageUploader } from '@/components/admin/ImageUploader';
 import { useAdminFeedback } from '@/components/admin/AdminFeedback';
 import { ToggleSwitch } from '@/components/admin/ToggleSwitch';
+import {
+  ADMIN_INPUT,
+  ADMIN_LABEL,
+  ADMIN_ERROR,
+  ADMIN_CARD,
+} from '@/components/admin/formClasses';
 
 const TALLAS_ROPA = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const TALLAS_CALZADO = ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
@@ -114,10 +120,9 @@ export default function NuevoProductoPage() {
     }
   }
 
-  const inputClasses =
-    'w-full px-4 py-3 bg-kdb-elevated border border-kdb-border rounded-md text-text-primary placeholder-text-muted focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors';
-  const labelClasses = 'block text-sm font-medium text-text-secondary mb-2';
-  const errorClasses = 'mt-1.5 text-xs text-danger';
+  const inputClasses = ADMIN_INPUT;
+  const labelClasses = ADMIN_LABEL;
+  const errorClasses = ADMIN_ERROR;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -125,15 +130,15 @@ export default function NuevoProductoPage() {
       <div className="flex items-center gap-4">
         <Link
           href="/admin/productos"
-          className="p-2 text-text-secondary hover:text-text-primary hover:bg-kdb-elevated rounded-md transition-colors"
+          className="rounded-md p-2 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink"
         >
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-3xl font-[family-name:var(--font-bebas-neue)] text-text-primary tracking-wide">
+          <h1 className="text-xl font-bold uppercase tracking-[0.15em] text-ink">
             Nuevo Producto
           </h1>
-          <p className="text-sm text-text-secondary mt-1">
+          <p className="mt-2 text-sm text-ink-muted">
             Completa los datos del producto
           </p>
         </div>
@@ -142,8 +147,8 @@ export default function NuevoProductoPage() {
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         {/* Basic Info */}
-        <div className="bg-kdb-card border border-kdb-border rounded-md p-6 space-y-5">
-          <h2 className="text-lg font-[family-name:var(--font-bebas-neue)] text-gold tracking-wide">
+        <div className={`${ADMIN_CARD} space-y-5`}>
+          <h2 className="text-eyebrow text-ink">
             Información Básica
           </h2>
 
@@ -198,8 +203,8 @@ export default function NuevoProductoPage() {
         </div>
 
         {/* Pricing */}
-        <div className="bg-kdb-card border border-kdb-border rounded-md p-6 space-y-5">
-          <h2 className="text-lg font-[family-name:var(--font-bebas-neue)] text-gold tracking-wide">
+        <div className={`${ADMIN_CARD} space-y-5`}>
+          <h2 className="text-eyebrow text-ink">
             Precios
           </h2>
 
@@ -248,8 +253,8 @@ export default function NuevoProductoPage() {
         </div>
 
         {/* Classification */}
-        <div className="bg-kdb-card border border-kdb-border rounded-md p-6 space-y-5">
-          <h2 className="text-lg font-[family-name:var(--font-bebas-neue)] text-gold tracking-wide">
+        <div className={`${ADMIN_CARD} space-y-5`}>
+          <h2 className="text-eyebrow text-ink">
             Clasificación
           </h2>
 
@@ -295,14 +300,14 @@ export default function NuevoProductoPage() {
         </div>
 
         {/* Sizes */}
-        <div className="bg-kdb-card border border-kdb-border rounded-md p-6 space-y-5">
-          <h2 className="text-lg font-[family-name:var(--font-bebas-neue)] text-gold tracking-wide">
+        <div className={`${ADMIN_CARD} space-y-5`}>
+          <h2 className="text-eyebrow text-ink">
             Tallas Disponibles
           </h2>
 
           {/* Clothing sizes */}
           <div>
-            <p className="text-sm text-text-secondary mb-3">Ropa</p>
+            <p className="mb-3 text-sm text-ink-muted">Ropa</p>
             <div className="flex flex-wrap gap-2">
               {TALLAS_ROPA.map((talla) => (
                 <button
@@ -311,8 +316,8 @@ export default function NuevoProductoPage() {
                   onClick={() => toggleTalla(talla)}
                   className={
                     tallasValue.includes(talla)
-                      ? 'px-3 py-1.5 rounded-md text-sm font-medium bg-gold text-kdb-bg transition-colors'
-                      : 'px-3 py-1.5 rounded-md text-sm font-medium bg-kdb-elevated border border-kdb-border text-text-secondary hover:border-gold hover:text-gold transition-colors'
+                      ? 'rounded-md border border-ink bg-ink px-3 py-1.5 text-sm transition-colors text-ink-inverse'
+                      : 'rounded-md border border-line bg-surface px-3 py-1.5 text-sm text-ink-muted transition-colors hover:border-ink hover:text-ink'
                   }
                 >
                   {talla}
@@ -323,7 +328,7 @@ export default function NuevoProductoPage() {
 
           {/* Shoe sizes */}
           <div>
-            <p className="text-sm text-text-secondary mb-3">Calzado</p>
+            <p className="mb-3 text-sm text-ink-muted">Calzado</p>
             <div className="flex flex-wrap gap-2">
               {TALLAS_CALZADO.map((talla) => (
                 <button
@@ -332,8 +337,8 @@ export default function NuevoProductoPage() {
                   onClick={() => toggleTalla(talla)}
                   className={
                     tallasValue.includes(talla)
-                      ? 'px-3 py-1.5 rounded-md text-sm font-medium bg-gold text-kdb-bg transition-colors'
-                      : 'px-3 py-1.5 rounded-md text-sm font-medium bg-kdb-elevated border border-kdb-border text-text-secondary hover:border-gold hover:text-gold transition-colors'
+                      ? 'rounded-md border border-ink bg-ink px-3 py-1.5 text-sm transition-colors text-ink-inverse'
+                      : 'rounded-md border border-line bg-surface px-3 py-1.5 text-sm text-ink-muted transition-colors hover:border-ink hover:text-ink'
                   }
                 >
                   {talla}
@@ -344,8 +349,8 @@ export default function NuevoProductoPage() {
         </div>
 
         {/* Images */}
-        <div className="bg-kdb-card border border-kdb-border rounded-md p-6 space-y-5">
-          <h2 className="text-lg font-[family-name:var(--font-bebas-neue)] text-gold tracking-wide">
+        <div className={`${ADMIN_CARD} space-y-5`}>
+          <h2 className="text-eyebrow text-ink">
             Imágenes
           </h2>
 
@@ -353,8 +358,8 @@ export default function NuevoProductoPage() {
         </div>
 
         {/* Toggles & Stock */}
-        <div className="bg-kdb-card border border-kdb-border rounded-md p-6 space-y-5">
-          <h2 className="text-lg font-[family-name:var(--font-bebas-neue)] text-gold tracking-wide">
+        <div className={`${ADMIN_CARD} space-y-5`}>
+          <h2 className="text-eyebrow text-ink">
             Opciones
           </h2>
 
@@ -383,12 +388,12 @@ export default function NuevoProductoPage() {
             <div className="hidden sm:block" />
 
             {/* Es pedido */}
-            <div className="flex items-center justify-between sm:col-span-2 p-4 bg-kdb-elevated rounded-md">
+            <div className="flex items-center justify-between rounded-md bg-surface-muted p-4 sm:col-span-2">
               <div>
-                <p className="text-sm font-medium text-text-primary">
+                <p className="text-sm font-medium text-ink">
                   Producto por Pedido
                 </p>
-                <p className="text-xs text-text-muted mt-0.5">
+                <p className="mt-1 text-xs text-ink-muted">
                   El producto se importa por encargo
                 </p>
               </div>
@@ -396,17 +401,17 @@ export default function NuevoProductoPage() {
                 checked={esPedido}
                 onChange={(v) => setValue('es_pedido', v)}
                 label="Producto por pedido"
-                activeColor="bg-gold"
+                activeColor="bg-ink"
               />
             </div>
 
             {/* Disponible */}
-            <div className="flex items-center justify-between sm:col-span-2 p-4 bg-kdb-elevated rounded-md">
+            <div className="flex items-center justify-between rounded-md bg-surface-muted p-4 sm:col-span-2">
               <div>
-                <p className="text-sm font-medium text-text-primary">
+                <p className="text-sm font-medium text-ink">
                   Disponible
                 </p>
-                <p className="text-xs text-text-muted mt-0.5">
+                <p className="mt-1 text-xs text-ink-muted">
                   Visible en la tienda para los clientes
                 </p>
               </div>
@@ -419,12 +424,12 @@ export default function NuevoProductoPage() {
             </div>
 
             {/* Destacado */}
-            <div className="flex items-center justify-between sm:col-span-2 p-4 bg-kdb-elevated rounded-md">
+            <div className="flex items-center justify-between rounded-md bg-surface-muted p-4 sm:col-span-2">
               <div>
-                <p className="text-sm font-medium text-text-primary">
+                <p className="text-sm font-medium text-ink">
                   Destacado
                 </p>
-                <p className="text-xs text-text-muted mt-0.5">
+                <p className="mt-1 text-xs text-ink-muted">
                   Aparece en la sección de productos destacados
                 </p>
               </div>
@@ -432,7 +437,7 @@ export default function NuevoProductoPage() {
                 checked={destacado}
                 onChange={(v) => setValue('destacado', v)}
                 label="Producto destacado"
-                activeColor="bg-gold"
+                activeColor="bg-ink"
               />
             </div>
           </div>
@@ -442,21 +447,17 @@ export default function NuevoProductoPage() {
         <div className="flex items-center justify-end gap-4">
           <Link
             href="/admin/productos"
-            className="px-6 py-3 text-sm text-text-secondary hover:text-text-primary transition-colors"
+            className="px-6 py-3 text-sm text-ink-muted transition-colors hover:text-ink"
           >
             Cancelar
           </Link>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex items-center gap-2 px-8 py-3 bg-gold text-kdb-bg font-semibold rounded-md hover:bg-gold-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-solid h-12 rounded-md px-8"
           >
-            {isSubmitting ? (
-              <div className="w-5 h-5 border-2 border-kdb-bg/30 border-t-kdb-bg rounded-full animate-spin" />
-            ) : (
-              <Save className="w-5 h-5" />
-            )}
-            {isSubmitting ? 'Guardando...' : 'Guardar Producto'}
+            {!isSubmitting && <Save size={17} strokeWidth={1.5} />}
+            {isSubmitting ? 'Guardando…' : 'Guardar producto'}
           </button>
         </div>
       </form>

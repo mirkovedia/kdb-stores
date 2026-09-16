@@ -1,40 +1,41 @@
-'use client';
-
-import { PackageSearch } from 'lucide-react';
 import { ProductCard } from './ProductCard';
 import type { Producto } from '@/types';
 
 interface ProductGridProps {
   products: Producto[];
   loading: boolean;
+  /** Cantidad de celdas del esqueleto mientras carga. */
+  skeletonCount?: number;
 }
 
+/*
+  El esqueleto replica exactamente la forma de ProductCard (imagen 4/5 + dos
+  líneas centradas). Si no coincide, la grilla "salta" al terminar de cargar.
+*/
 function SkeletonCard() {
   return (
-    <div className="border border-kdb-border bg-kdb-card rounded-sm overflow-hidden">
-      <div className="aspect-square skeleton" />
-      <div className="p-3 space-y-3">
-        <div className="h-2 w-16 skeleton rounded-sm" />
-        <div className="space-y-1.5">
-          <div className="h-3.5 w-full skeleton rounded-sm" />
-          <div className="h-3.5 w-3/4 skeleton rounded-sm" />
-        </div>
-        <div className="h-5 w-24 skeleton rounded-sm" />
-        <div className="flex gap-1">
-          <div className="h-4 w-8 skeleton rounded-sm" />
-          <div className="h-4 w-8 skeleton rounded-sm" />
-          <div className="h-4 w-8 skeleton rounded-sm" />
-        </div>
+    <div>
+      <div className="aspect-[4/5] skeleton" />
+      <div className="flex flex-col items-center gap-2 pt-4">
+        <div className="skeleton h-3 w-3/4" />
+        <div className="skeleton h-3 w-16" />
       </div>
     </div>
   );
 }
 
-export function ProductGrid({ products, loading }: ProductGridProps) {
+const GRID_CLASSES =
+  'grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 md:gap-x-6 md:gap-y-14 lg:grid-cols-4';
+
+export function ProductGrid({
+  products,
+  loading,
+  skeletonCount = 8,
+}: ProductGridProps) {
   if (loading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-        {Array.from({ length: 8 }).map((_, i) => (
+      <div className={GRID_CLASSES}>
+        {Array.from({ length: skeletonCount }).map((_, i) => (
           <SkeletonCard key={i} />
         ))}
       </div>
@@ -43,22 +44,20 @@ export function ProductGrid({ products, loading }: ProductGridProps) {
 
   if (products.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 text-center">
-        <PackageSearch size={48} className="text-text-muted mb-4" strokeWidth={1} />
-        <h3 className="text-lg font-semibold text-text-primary mb-2">
-          No se encontraron productos
-        </h3>
-        <p className="text-sm text-text-secondary max-w-sm">
-          Intenta ajustar los filtros o buscar con otros términos. Nuevos drops llegan cada semana.
+      <div className="flex flex-col items-center justify-center border-t border-line py-28 text-center">
+        <h3 className="text-product text-ink">No encontramos productos</h3>
+        <p className="mt-4 max-w-sm text-sm leading-relaxed text-ink-muted">
+          Probá ajustando los filtros o buscando con otros términos. Sumamos
+          productos nuevos cada semana.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
+    <div className={GRID_CLASSES}>
+      {products.map((product, i) => (
+        <ProductCard key={product.id} product={product} priority={i < 4} />
       ))}
     </div>
   );

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, SlidersHorizontal, X, Search } from 'lucide-react';
+import { ChevronDown, X, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ProductFilters } from '@/types';
 
@@ -14,7 +14,7 @@ const CATEGORIES = [
   { value: '', label: 'Todos' },
   { value: 'sneakers', label: 'Sneakers' },
   { value: 'supreme', label: 'Supreme' },
-  { value: 'ropa-grafica', label: 'Ropa Gráfica' },
+  { value: 'ropa-grafica', label: 'Ropa gráfica' },
   { value: 'accesorios', label: 'Accesorios' },
 ];
 
@@ -35,9 +35,13 @@ const CLOTHING_SIZES = ['S', 'M', 'L', 'XL'];
 
 const SORT_OPTIONS = [
   { value: 'reciente', label: 'Más reciente' },
-  { value: 'precio_asc', label: 'Precio ↑' },
-  { value: 'precio_desc', label: 'Precio ↓' },
+  { value: 'precio_asc', label: 'Precio: menor a mayor' },
+  { value: 'precio_desc', label: 'Precio: mayor a menor' },
 ] as const;
+
+/** Estilos compartidos por los disparadores de filtro, para que midan igual. */
+const TRIGGER_BASE =
+  'flex h-10 items-center gap-2 border px-4 text-nav transition-colors';
 
 export function FilterBar({ filters, onChange }: FilterBarProps) {
   const [brandDropdownOpen, setBrandDropdownOpen] = useState(false);
@@ -51,7 +55,7 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
   const brandRef = useRef<HTMLDivElement>(null);
   const sortRef = useRef<HTMLDivElement>(null);
 
-  // Debounce: actualiza el filtro de búsqueda 350ms después de dejar de teclear
+  // Debounce: actualiza el filtro de búsqueda 350ms después de dejar de teclear.
   useEffect(() => {
     const current = filters.busqueda ?? '';
     if (searchValue === current) return;
@@ -62,7 +66,7 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchValue]);
 
-  // Mantiene el input en sync cuando la búsqueda cambia desde fuera (URL, limpiar)
+  // Mantiene el input en sync cuando la búsqueda cambia desde fuera (URL, limpiar).
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSearchValue(filters.busqueda ?? '');
@@ -96,66 +100,84 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
     updateFilters({ talla: filters.talla === size ? undefined : size });
   }
 
-  const currentSort = SORT_OPTIONS.find((o) => o.value === (filters.ordenar || 'reciente'));
+  const currentSort = SORT_OPTIONS.find(
+    (o) => o.value === (filters.ordenar || 'reciente'),
+  );
+
+  const hasActiveFilters = Boolean(
+    filters.categoria ||
+      filters.marca ||
+      filters.talla ||
+      filters.busqueda ||
+      filters.soloDisponibles ||
+      (filters.ordenar && filters.ordenar !== 'reciente'),
+  );
 
   return (
-    <div className="sticky top-0 z-40 bg-kdb-bg/95 backdrop-blur-md border-b border-kdb-border">
-      <div className="container-kdb py-4 space-y-4">
-        {/* Search input */}
+    <div className="border-y border-line bg-surface">
+      <div className="container-kdb space-y-5 py-5">
+        {/* Buscador */}
         <div className="relative">
-          <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-text-muted pointer-events-none">
-            <Search className="w-4 h-4" />
+          <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-ink-subtle">
+            <Search size={16} strokeWidth={1.5} />
           </span>
           <input
             type="text"
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
-            placeholder="Buscar por nombre, marca o modelo..."
-            className="w-full bg-kdb-elevated border border-kdb-border text-text-primary text-sm pl-10 pr-10 py-2.5 rounded-sm placeholder:text-text-muted focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors"
+            placeholder="Buscar por nombre, marca o modelo"
+            aria-label="Buscar productos"
+            className="h-12 w-full border border-line bg-surface pl-11 pr-11 text-sm text-ink transition-colors placeholder:text-ink-subtle focus:border-ink focus:outline-none"
           />
           {searchValue && (
             <button
+              type="button"
               onClick={() => setSearchValue('')}
               aria-label="Limpiar búsqueda"
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted hover:text-danger transition-colors"
+              className="absolute inset-y-0 right-0 flex items-center pr-4 text-ink-subtle transition-colors hover:text-ink"
             >
-              <X className="w-4 h-4" />
+              <X size={16} strokeWidth={1.5} />
             </button>
           )}
         </div>
 
-        {/* Category tabs */}
-        <div className="flex items-center gap-1 overflow-x-auto scrollbar-none pb-1">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.value}
-              onClick={() => updateFilters({ categoria: cat.value || undefined })}
-              className={cn(
-                'px-4 py-2 text-sm font-medium whitespace-nowrap transition-all duration-200 rounded-sm',
-                (filters.categoria || '') === cat.value
-                  ? 'bg-gold text-black'
-                  : 'text-text-secondary hover:text-gold hover:bg-kdb-elevated'
-              )}
-            >
-              {cat.label}
-            </button>
-          ))}
+        {/* Categorías: pestañas subrayadas, no botones rellenos */}
+        <div className="scrollbar-none flex items-center gap-7 overflow-x-auto">
+          {CATEGORIES.map((cat) => {
+            const active = (filters.categoria || '') === cat.value;
+            return (
+              <button
+                key={cat.value}
+                type="button"
+                onClick={() => updateFilters({ categoria: cat.value || undefined })}
+                className={cn(
+                  'whitespace-nowrap border-b-2 pb-2 text-nav transition-colors',
+                  active
+                    ? 'border-ink text-ink'
+                    : 'border-transparent text-ink-muted hover:text-ink',
+                )}
+              >
+                {cat.label}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Second row: Brand, Size toggle, Availability, Sort */}
+        {/* Marca, talla, disponibilidad y orden */}
         <div className="flex flex-wrap items-center gap-3">
-          {/* Brand multi-select dropdown */}
+          {/* Marcas (multi-select) */}
           <div ref={brandRef} className="relative">
             <button
+              type="button"
               onClick={() => setBrandDropdownOpen(!brandDropdownOpen)}
+              aria-expanded={brandDropdownOpen}
               className={cn(
-                'flex items-center gap-2 px-3 py-2 text-sm border rounded-sm transition-colors',
+                TRIGGER_BASE,
                 selectedBrands.length > 0
-                  ? 'border-gold text-gold'
-                  : 'border-kdb-border text-text-secondary hover:border-gold/50'
+                  ? 'border-ink text-ink'
+                  : 'border-line text-ink-muted hover:border-ink hover:text-ink',
               )}
             >
-              <SlidersHorizontal size={14} />
               <span>
                 {selectedBrands.length > 0
                   ? `Marcas (${selectedBrands.length})`
@@ -163,162 +185,167 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
               </span>
               <ChevronDown
                 size={14}
-                className={cn(
-                  'transition-transform duration-200',
-                  brandDropdownOpen && 'rotate-180'
-                )}
+                strokeWidth={1.5}
+                className={cn('transition-transform duration-200', brandDropdownOpen && 'rotate-180')}
               />
             </button>
 
             {brandDropdownOpen && (
-              <div className="absolute top-full left-0 mt-2 w-56 bg-kdb-elevated border border-kdb-border rounded-sm shadow-xl z-50">
-                <div className="p-2 space-y-1">
-                  {BRANDS.map((brand) => (
+              <div className="absolute left-0 top-full z-50 mt-1 w-60 border border-line bg-surface">
+                {BRANDS.map((brand) => {
+                  const checked = selectedBrands.includes(brand.slug);
+                  return (
                     <button
                       key={brand.slug}
+                      type="button"
                       onClick={() => toggleBrand(brand.slug)}
-                      className={cn(
-                        'w-full flex items-center gap-2 px-3 py-2 text-sm rounded-sm transition-colors text-left',
-                        selectedBrands.includes(brand.slug)
-                          ? 'bg-gold/10 text-gold'
-                          : 'text-text-secondary hover:bg-kdb-card hover:text-text-primary'
-                      )}
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-nav text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink"
                     >
-                      <div
+                      <span
                         className={cn(
-                          'w-4 h-4 border rounded-sm flex items-center justify-center text-[10px]',
-                          selectedBrands.includes(brand.slug)
-                            ? 'bg-gold border-gold text-black'
-                            : 'border-kdb-border'
+                          'flex h-4 w-4 shrink-0 items-center justify-center border',
+                          checked ? 'border-ink bg-ink' : 'border-line',
                         )}
                       >
-                        {selectedBrands.includes(brand.slug) && '✓'}
-                      </div>
+                        {checked && (
+                          <svg
+                            viewBox="0 0 10 8"
+                            className="h-2 w-2.5 fill-none stroke-white stroke-2"
+                            aria-hidden="true"
+                          >
+                            <path d="M1 4l2.5 2.5L9 1" />
+                          </svg>
+                        )}
+                      </span>
                       {brand.name}
                     </button>
-                  ))}
-                </div>
+                  );
+                })}
+
                 {selectedBrands.length > 0 && (
-                  <div className="border-t border-kdb-border p-2">
-                    <button
-                      onClick={() => updateFilters({ marca: undefined })}
-                      className="w-full text-xs text-text-muted hover:text-danger transition-colors py-1"
-                    >
-                      Limpiar marcas
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => updateFilters({ marca: undefined })}
+                    className="w-full border-t border-line px-4 py-3 text-left text-nav text-ink-subtle transition-colors hover:text-ink"
+                  >
+                    Limpiar marcas
+                  </button>
                 )}
               </div>
             )}
           </div>
 
-          {/* Size toggle button */}
+          {/* Talla */}
           <button
+            type="button"
             onClick={() => setShowSizes(!showSizes)}
+            aria-expanded={showSizes}
             className={cn(
-              'flex items-center gap-2 px-3 py-2 text-sm border rounded-sm transition-colors',
+              TRIGGER_BASE,
               filters.talla
-                ? 'border-gold text-gold'
-                : 'border-kdb-border text-text-secondary hover:border-gold/50'
+                ? 'border-ink text-ink'
+                : 'border-line text-ink-muted hover:border-ink hover:text-ink',
             )}
           >
             <span>Talla{filters.talla ? `: ${filters.talla}` : ''}</span>
             <ChevronDown
               size={14}
-              className={cn(
-                'transition-transform duration-200',
-                showSizes && 'rotate-180'
-              )}
+              strokeWidth={1.5}
+              className={cn('transition-transform duration-200', showSizes && 'rotate-180')}
             />
           </button>
 
-          {/* Availability toggle */}
+          {/* Disponibilidad */}
           <button
+            type="button"
             onClick={() => updateFilters({ soloDisponibles: !filters.soloDisponibles })}
+            aria-pressed={Boolean(filters.soloDisponibles)}
             className={cn(
-              'px-3 py-2 text-sm border rounded-sm transition-colors',
+              TRIGGER_BASE,
               filters.soloDisponibles
-                ? 'border-gold text-gold bg-gold/10'
-                : 'border-kdb-border text-text-secondary hover:border-gold/50'
+                ? 'border-ink bg-ink text-ink-inverse'
+                : 'border-line text-ink-muted hover:border-ink hover:text-ink',
             )}
           >
-            {filters.soloDisponibles ? 'Solo disponibles' : 'Incluir pedidos'}
+            Solo disponibles
           </button>
 
-          {/* Spacer */}
           <div className="flex-1" />
 
-          {/* Sort dropdown */}
+          {/* Orden */}
           <div ref={sortRef} className="relative">
             <button
+              type="button"
               onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
-              className="flex items-center gap-2 px-3 py-2 text-sm border border-kdb-border text-text-secondary rounded-sm hover:border-gold/50 transition-colors"
+              aria-expanded={sortDropdownOpen}
+              className={cn(TRIGGER_BASE, 'border-line text-ink-muted hover:border-ink hover:text-ink')}
             >
-              <span>{currentSort?.label || 'Ordenar'}</span>
+              <span>{currentSort?.label ?? 'Ordenar'}</span>
               <ChevronDown
                 size={14}
-                className={cn(
-                  'transition-transform duration-200',
-                  sortDropdownOpen && 'rotate-180'
-                )}
+                strokeWidth={1.5}
+                className={cn('transition-transform duration-200', sortDropdownOpen && 'rotate-180')}
               />
             </button>
 
             {sortDropdownOpen && (
-              <div className="absolute top-full right-0 mt-2 w-44 bg-kdb-elevated border border-kdb-border rounded-sm shadow-xl z-50">
-                <div className="p-1">
-                  {SORT_OPTIONS.map((option) => (
+              <div className="absolute right-0 top-full z-50 mt-1 w-56 border border-line bg-surface">
+                {SORT_OPTIONS.map((option) => {
+                  const active =
+                    filters.ordenar === option.value ||
+                    (!filters.ordenar && option.value === 'reciente');
+                  return (
                     <button
                       key={option.value}
+                      type="button"
                       onClick={() => {
                         updateFilters({ ordenar: option.value });
                         setSortDropdownOpen(false);
                       }}
                       className={cn(
-                        'w-full px-3 py-2 text-sm text-left rounded-sm transition-colors',
-                        filters.ordenar === option.value || (!filters.ordenar && option.value === 'reciente')
-                          ? 'text-gold bg-gold/10'
-                          : 'text-text-secondary hover:bg-kdb-card hover:text-text-primary'
+                        'w-full px-4 py-3 text-left text-nav transition-colors hover:bg-surface-muted',
+                        active ? 'text-ink' : 'text-ink-muted hover:text-ink',
                       )}
                     >
                       {option.label}
                     </button>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
             )}
           </div>
 
-          {/* Clear all filters */}
-          {(filters.categoria || filters.marca || filters.talla || filters.busqueda || filters.soloDisponibles || (filters.ordenar && filters.ordenar !== 'reciente')) && (
+          {hasActiveFilters && (
             <button
+              type="button"
               onClick={() => {
                 setSearchValue('');
                 onChange({});
               }}
-              className="flex items-center gap-1 px-3 py-2 text-sm text-danger hover:text-danger/80 transition-colors"
+              className="text-nav link-underline text-ink-muted transition-colors hover:text-ink"
             >
-              <X size={14} />
-              Limpiar
+              Limpiar filtros
             </button>
           )}
         </div>
 
-        {/* Size grid (expandable) */}
+        {/* Tallas (desplegable) */}
         {showSizes && (
-          <div className="pt-2 pb-1 space-y-3">
+          <div className="space-y-5 border-t border-line pt-5">
             <div>
-              <p className="text-xs text-text-muted mb-2 uppercase tracking-wider">Calzado</p>
+              <p className="text-eyebrow mb-3 text-ink-muted">Calzado</p>
               <div className="flex flex-wrap gap-2">
                 {SHOE_SIZES.map((size) => (
                   <button
                     key={size}
+                    type="button"
                     onClick={() => handleSizeClick(size)}
+                    aria-pressed={filters.talla === size}
                     className={cn(
-                      'min-w-[44px] h-9 px-2 text-sm border rounded-sm transition-all duration-200 flex items-center justify-center',
+                      'flex h-10 min-w-[2.75rem] items-center justify-center border px-2 text-nav transition-colors',
                       filters.talla === size
-                        ? 'bg-gold text-black border-gold'
-                        : 'border-kdb-border text-text-secondary hover:border-gold hover:text-text-primary'
+                        ? 'border-ink bg-ink text-ink-inverse'
+                        : 'border-line text-ink-muted hover:border-ink hover:text-ink',
                     )}
                   >
                     {size}
@@ -326,18 +353,21 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
                 ))}
               </div>
             </div>
+
             <div>
-              <p className="text-xs text-text-muted mb-2 uppercase tracking-wider">Ropa</p>
+              <p className="text-eyebrow mb-3 text-ink-muted">Ropa</p>
               <div className="flex flex-wrap gap-2">
                 {CLOTHING_SIZES.map((size) => (
                   <button
                     key={size}
+                    type="button"
                     onClick={() => handleSizeClick(size)}
+                    aria-pressed={filters.talla === size}
                     className={cn(
-                      'min-w-[44px] h-9 px-3 text-sm border rounded-sm transition-all duration-200 flex items-center justify-center',
+                      'flex h-10 min-w-[2.75rem] items-center justify-center border px-3 text-nav transition-colors',
                       filters.talla === size
-                        ? 'bg-gold text-black border-gold'
-                        : 'border-kdb-border text-text-secondary hover:border-gold hover:text-text-primary'
+                        ? 'border-ink bg-ink text-ink-inverse'
+                        : 'border-line text-ink-muted hover:border-ink hover:text-ink',
                     )}
                   >
                     {size}

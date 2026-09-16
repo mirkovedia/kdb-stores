@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface ProductGalleryProps {
@@ -10,69 +9,88 @@ interface ProductGalleryProps {
   nombre: string;
 }
 
+/*
+  Galería con dos comportamientos distintos según el ancho:
+
+  - Desktop: las imágenes se apilan en vertical y se recorren con scroll.
+    Es lo que hacen las tiendas de ropa del rubro, porque muestra todas las
+    vistas sin un solo clic y cada foto se ve grande.
+  - Móvil: una imagen principal con miniaturas, ya que ahí el scroll vertical
+    largo sí estorba.
+*/
 export function ProductGallery({ imagenes, nombre }: ProductGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const images = imagenes.length > 0 ? imagenes : ['/placeholder.png'];
+  const images = imagenes.length > 0 ? imagenes : [];
+
+  if (images.length === 0) {
+    return (
+      <div className="flex aspect-[4/5] items-center justify-center bg-surface-muted">
+        <span className="text-eyebrow text-ink-subtle">Sin imagen</span>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4">
-      {/* Main Image */}
-      <div className="relative aspect-[4/5] bg-kdb-elevated border border-kdb-border rounded-sm overflow-hidden">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={selectedIndex}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="absolute inset-0"
-          >
+    <>
+      {/* Desktop: pila vertical */}
+      <div className="hidden flex-col gap-4 md:flex">
+        {images.map((img, index) => (
+          <div key={img} className="relative aspect-[4/5] overflow-hidden bg-surface-muted">
             <Image
-              src={images[selectedIndex]}
-              alt={`${nombre} - Imagen ${selectedIndex + 1}`}
+              src={img}
+              alt={`${nombre} — vista ${index + 1}`}
               fill
               className="object-cover"
-              sizes="(max-width: 768px) 100vw, 58vw"
-              priority={selectedIndex === 0}
+              sizes="(max-width: 1024px) 100vw, 55vw"
+              priority={index === 0}
               unoptimized
             />
-          </motion.div>
-        </AnimatePresence>
+          </div>
+        ))}
+      </div>
 
-        {/* Image counter */}
+      {/* Móvil: principal + miniaturas */}
+      <div className="md:hidden">
+        <div className="relative aspect-[4/5] overflow-hidden bg-surface-muted">
+          <Image
+            src={images[selectedIndex]}
+            alt={`${nombre} — vista ${selectedIndex + 1}`}
+            fill
+            className="object-cover"
+            sizes="100vw"
+            priority
+            unoptimized
+          />
+        </div>
+
         {images.length > 1 && (
-          <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm text-text-secondary text-xs px-2 py-1 rounded-sm">
-            {selectedIndex + 1} / {images.length}
+          <div className="scrollbar-none mt-3 flex gap-2 overflow-x-auto">
+            {images.map((img, index) => (
+              <button
+                key={img}
+                type="button"
+                onClick={() => setSelectedIndex(index)}
+                aria-label={`Ver imagen ${index + 1}`}
+                aria-pressed={selectedIndex === index}
+                className={cn(
+                  'relative aspect-square w-16 shrink-0 overflow-hidden border bg-surface-muted transition-colors',
+                  selectedIndex === index ? 'border-ink' : 'border-transparent',
+                )}
+              >
+                <Image
+                  src={img}
+                  alt=""
+                  aria-hidden="true"
+                  fill
+                  className="object-cover"
+                  sizes="64px"
+                  unoptimized
+                />
+              </button>
+            ))}
           </div>
         )}
       </div>
-
-      {/* Thumbnails */}
-      {images.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1 md:grid md:grid-cols-5 md:overflow-visible">
-          {images.map((img, index) => (
-            <button
-              key={index}
-              onClick={() => setSelectedIndex(index)}
-              className={cn(
-                'relative aspect-square min-w-[64px] w-16 md:w-full border rounded-sm overflow-hidden transition-all duration-200 flex-shrink-0',
-                selectedIndex === index
-                  ? 'border-gold shadow-gold'
-                  : 'border-kdb-border hover:border-gold/50 opacity-60 hover:opacity-100'
-              )}
-            >
-              <Image
-                src={img}
-                alt={`${nombre} - Miniatura ${index + 1}`}
-                fill
-                className="object-cover"
-                sizes="80px"
-                unoptimized
-              />
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+    </>
   );
 }

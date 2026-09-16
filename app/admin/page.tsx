@@ -8,7 +8,7 @@ import {
   DollarSign,
   BarChart3,
 } from 'lucide-react';
-import { cn, formatPrice, ESTADO_COLORS, ESTADO_LABELS } from '@/lib/utils';
+import { cn, formatPrice, ESTADO_COLORS, ESTADO_LABELS, TH_CLASSES } from '@/lib/utils';
 import type { Pedido } from '@/types';
 import { createClient } from '@/lib/supabase/server';
 
@@ -150,10 +150,10 @@ export default async function AdminDashboardPage() {
     <div className="space-y-8">
       {/* Page Title */}
       <div>
-        <h1 className="text-3xl font-[family-name:var(--font-bebas-neue)] text-text-primary tracking-wide">
+        <h1 className="text-xl font-bold uppercase tracking-[0.15em] text-ink">
           Dashboard
         </h1>
-        <p className="text-sm text-text-secondary mt-1">
+        <p className="mt-2 text-sm text-ink-muted">
           Resumen general de KDB Stores
         </p>
       </div>
@@ -163,15 +163,15 @@ export default async function AdminDashboardPage() {
         {displayCards.map((card) => (
           <div
             key={card.label}
-            className="bg-kdb-card border border-kdb-border rounded-md p-5"
+            className="rounded-md border border-line bg-surface p-5"
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="text-gold">{card.icon}</div>
+              <div className="text-ink-muted">{card.icon}</div>
             </div>
-            <div className="text-3xl font-[family-name:var(--font-bebas-neue)] text-text-primary">
+            <div className="text-2xl font-bold tracking-[0.02em] text-ink">
               {card.value}
             </div>
-            <div className="text-sm text-text-secondary mt-1">
+            <div className="mt-1 text-sm text-ink-muted">
               {card.label}
             </div>
           </div>
@@ -181,29 +181,29 @@ export default async function AdminDashboardPage() {
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Ventas por mes */}
-        <div className="bg-kdb-card border border-kdb-border rounded-md p-6 lg:col-span-2">
+        <div className="rounded-md border border-line bg-surface p-6 lg:col-span-2">
           <div className="flex items-center gap-2 mb-6">
-            <BarChart3 className="w-5 h-5 text-gold" />
-            <h2 className="text-xl font-[family-name:var(--font-bebas-neue)] text-text-primary tracking-wide">
+            <BarChart3 className="h-5 w-5 text-ink-muted" strokeWidth={1.5} />
+            <h2 className="text-eyebrow text-ink">
               Ingresos — Últimos 6 meses
             </h2>
           </div>
           {monthlySales.every((m) => m.total === 0) ? (
-            <p className="text-sm text-text-muted py-12 text-center">
+            <p className="py-12 text-center text-sm text-ink-subtle">
               Aún no hay ventas registradas.
             </p>
           ) : (
             <div className="flex items-end justify-between gap-3 h-48">
               {monthlySales.map((m, i) => (
                 <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                  <span className="text-[10px] text-text-secondary">
+                  <span className="text-[10px] text-ink-muted">
                     {m.total > 0 ? formatPrice(m.total).replace('.00', '') : ''}
                   </span>
                   <div
-                    className="w-full bg-gradient-to-t from-gold-dark to-gold rounded-sm transition-all"
+                    className="w-full rounded-sm bg-ink transition-all"
                     style={{ height: `${(m.total / maxMonthly) * 100}%`, minHeight: m.total > 0 ? '4px' : '0' }}
                   />
-                  <span className="text-xs text-text-muted">{m.label}</span>
+                  <span className="text-xs text-ink-subtle">{m.label}</span>
                 </div>
               ))}
             </div>
@@ -211,23 +211,23 @@ export default async function AdminDashboardPage() {
         </div>
 
         {/* Top productos */}
-        <div className="bg-kdb-card border border-kdb-border rounded-md p-6">
-          <h2 className="text-xl font-[family-name:var(--font-bebas-neue)] text-text-primary tracking-wide mb-6">
+        <div className="rounded-md border border-line bg-surface p-6">
+          <h2 className="text-eyebrow mb-6 text-ink">
             Productos más pedidos
           </h2>
           {topProducts.length === 0 ? (
-            <p className="text-sm text-text-muted py-12 text-center">Sin datos todavía.</p>
+            <p className="py-12 text-center text-sm text-ink-subtle">Sin datos todavía.</p>
           ) : (
             <div className="space-y-4">
               {topProducts.map((p) => (
                 <div key={p.nombre}>
                   <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="text-text-secondary truncate pr-2">{p.nombre}</span>
-                    <span className="text-gold font-medium shrink-0">{p.cantidad}</span>
+                    <span className="truncate pr-2 text-ink-muted">{p.nombre}</span>
+                    <span className="shrink-0 font-medium text-ink">{p.cantidad}</span>
                   </div>
-                  <div className="h-1.5 bg-kdb-elevated rounded-full overflow-hidden">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-surface-muted">
                     <div
-                      className="h-full bg-gold rounded-full"
+                      className="h-full rounded-full bg-ink"
                       style={{ width: `${(p.cantidad / maxTop) * 100}%` }}
                     />
                   </div>
@@ -239,14 +239,14 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* Recent Orders Table */}
-      <div className="bg-kdb-card border border-kdb-border rounded-md">
-        <div className="px-6 py-4 border-b border-kdb-border flex items-center justify-between">
-          <h2 className="text-xl font-[family-name:var(--font-bebas-neue)] text-text-primary tracking-wide">
+      <div className="rounded-md border border-line bg-surface">
+        <div className="flex items-center justify-between border-b border-line px-6 py-4">
+          <h2 className="text-eyebrow text-ink">
             Últimos Pedidos
           </h2>
           <Link
             href="/admin/pedidos"
-            className="text-sm text-gold hover:text-gold-light transition-colors"
+            className="text-nav link-underline text-ink-muted transition-colors hover:text-ink"
           >
             Ver todos →
           </Link>
@@ -254,48 +254,48 @@ export default async function AdminDashboardPage() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-kdb-border">
-                <th className="text-left px-6 py-3 text-xs font-medium text-gold uppercase tracking-wider">
+              <tr className="border-b border-line bg-surface-muted">
+                <th className={cn(TH_CLASSES, "px-6")}>
                   Número
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gold uppercase tracking-wider">
+                <th className={cn(TH_CLASSES, "px-6")}>
                   Cliente
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gold uppercase tracking-wider hidden md:table-cell">
+                <th className={cn(TH_CLASSES, "px-6 hidden md:table-cell")}>
                   Producto
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gold uppercase tracking-wider hidden lg:table-cell">
+                <th className={cn(TH_CLASSES, "px-6 hidden lg:table-cell")}>
                   Talla
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gold uppercase tracking-wider">
+                <th className={cn(TH_CLASSES, "px-6")}>
                   Estado
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gold uppercase tracking-wider hidden sm:table-cell">
+                <th className={cn(TH_CLASSES, "px-6 hidden sm:table-cell")}>
                   Fecha
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gold uppercase tracking-wider">
+                <th className={cn(TH_CLASSES, "px-6")}>
                   Acciones
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-kdb-border">
+            <tbody className="divide-y divide-line">
               {pedidos.map((pedido) => {
                 const color = ESTADO_COLORS[pedido.estado];
                 return (
                   <tr
                     key={pedido.id}
-                    className="hover:bg-kdb-elevated transition-colors"
+                    className="transition-colors hover:bg-surface-muted"
                   >
-                    <td className="px-6 py-4 text-sm font-medium text-text-primary whitespace-nowrap">
+                    <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-ink">
                       {pedido.numero_pedido}
                     </td>
-                    <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-ink-muted">
                       {pedido.cliente_nombre}
                     </td>
-                    <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap hidden md:table-cell max-w-[200px] truncate">
+                    <td className="hidden max-w-[200px] truncate whitespace-nowrap px-6 py-4 text-sm text-ink-muted md:table-cell">
                       {pedido.producto_nombre}
                     </td>
-                    <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap hidden lg:table-cell">
+                    <td className="hidden whitespace-nowrap px-6 py-4 text-sm text-ink-muted lg:table-cell">
                       {pedido.talla}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -309,13 +309,13 @@ export default async function AdminDashboardPage() {
                         {ESTADO_LABELS[pedido.estado]}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap hidden sm:table-cell">
+                    <td className="hidden whitespace-nowrap px-6 py-4 text-sm text-ink-muted sm:table-cell">
                       {pedido.created_at.substring(0, 10)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Link
                         href={`/admin/pedidos?id=${pedido.id}`}
-                        className="inline-flex items-center gap-1 text-sm text-gold hover:text-gold-light transition-colors"
+                        className="inline-flex items-center gap-1 text-sm text-ink-muted transition-colors hover:text-ink"
                       >
                         <Eye className="w-4 h-4" />
                         Ver

@@ -1,9 +1,13 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { ESTADOS_PEDIDO, getEstadoIndex, getWhatsAppLink, formatPrice } from '@/lib/utils';
+import {
+  ESTADOS_PEDIDO,
+  getEstadoIndex,
+  getWhatsAppLink,
+  formatPrice,
+} from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import type { Pedido, PedidoHistorial, PedidoItem } from '@/types';
-import { Check, MessageCircle, AlertTriangle, Calendar, ShoppingBag, User, Ruler } from 'lucide-react';
 
 interface OrderTrackerProps {
   pedido: Pedido;
@@ -16,23 +20,9 @@ export function OrderTracker({ pedido, historial, items = [] }: OrderTrackerProp
   const currentStatusIndex = getEstadoIndex(pedido.estado);
   const isCancelled = pedido.estado === 'cancelado';
 
-  // Filter out cancelado from the linear steps
+  // "cancelado" no es un paso de la secuencia: se muestra como aviso aparte.
   const steps = ESTADOS_PEDIDO.filter((e) => e.value !== 'cancelado');
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, x: -10 },
-    visible: { opacity: 1, x: 0, transition: { duration: 0.4 } },
-  };
-
-  // Find date for each state in the history
   function getStatusDate(statusValue: string): string | null {
     const record = historial.find((h) => h.estado === statusValue);
     if (!record) return null;
@@ -45,205 +35,181 @@ export function OrderTracker({ pedido, historial, items = [] }: OrderTrackerProp
     });
   }
 
-  // Find note for each state in the history
   function getStatusNote(statusValue: string): string | null {
     const record = historial.find((h) => h.estado === statusValue);
     return record?.nota || null;
   }
 
   return (
-    <div className="space-y-8">
-      {/* Overview Card */}
-      <div className="bg-kdb-card border border-kdb-border p-6 md:p-8 rounded-sm">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-kdb-border pb-6">
+    <div className="space-y-14">
+      {/* Resumen */}
+      <div className="border border-line">
+        <div className="flex flex-col gap-5 border-b border-line p-6 md:flex-row md:items-center md:justify-between md:p-8">
           <div>
-            <span className="text-xs text-text-secondary uppercase tracking-widest">Número de Pedido</span>
-            <h2 className="font-[family-name:var(--font-bebas-neue)] text-3xl text-gold tracking-wider mt-1">
+            <p className="text-eyebrow text-ink-muted">Número de pedido</p>
+            <p className="mt-2 text-lg tracking-[0.15em] text-ink">
               {pedido.numero_pedido}
-            </h2>
+            </p>
           </div>
-          <div className="flex flex-col md:items-end">
-            <span className="text-xs text-text-secondary uppercase tracking-widest">Fecha de Registro</span>
-            <div className="flex items-center gap-2 text-text-primary mt-1 text-sm">
-              <Calendar className="w-4 h-4 text-gold" />
-              <span>
-                {new Date(pedido.created_at).toLocaleDateString('es-PE', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                })}
-              </span>
-            </div>
+
+          <div className="md:text-right">
+            <p className="text-eyebrow text-ink-muted">Fecha de registro</p>
+            <p className="mt-2 text-sm text-ink">
+              {new Date(pedido.created_at).toLocaleDateString('es-PE', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
+            </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-sm bg-kdb-elevated flex items-center justify-center border border-kdb-border text-gold shrink-0">
-              <ShoppingBag className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-xs text-text-secondary uppercase tracking-wider block">Producto</span>
-              <span className="text-sm font-semibold text-text-primary">{pedido.producto_nombre}</span>
-              <span className="text-xs text-gold block mt-0.5">{formatPrice(pedido.producto_precio)}</span>
-            </div>
+        <dl className="grid grid-cols-1 gap-6 p-6 md:grid-cols-3 md:p-8">
+          <div>
+            <dt className="text-eyebrow text-ink-muted">Producto</dt>
+            <dd className="mt-2 text-sm text-ink">{pedido.producto_nombre}</dd>
+            <dd className="mt-1 text-sm text-ink-muted">
+              {formatPrice(pedido.producto_precio)}
+            </dd>
           </div>
 
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-sm bg-kdb-elevated flex items-center justify-center border border-kdb-border text-gold shrink-0">
-              <Ruler className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-xs text-text-secondary uppercase tracking-wider block">Talla Seleccionada</span>
-              <span className="text-sm font-semibold text-text-primary uppercase">{pedido.talla}</span>
-            </div>
+          <div>
+            <dt className="text-eyebrow text-ink-muted">Talla</dt>
+            <dd className="mt-2 text-sm uppercase text-ink">{pedido.talla}</dd>
           </div>
 
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-sm bg-kdb-elevated flex items-center justify-center border border-kdb-border text-gold shrink-0">
-              <User className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-xs text-text-secondary uppercase tracking-wider block">Cliente</span>
-              <span className="text-sm font-semibold text-text-primary">{pedido.cliente_nombre}</span>
-              <span className="text-xs text-text-secondary block mt-0.5">{pedido.cliente_whatsapp}</span>
-            </div>
+          <div>
+            <dt className="text-eyebrow text-ink-muted">Cliente</dt>
+            <dd className="mt-2 text-sm text-ink">{pedido.cliente_nombre}</dd>
+            <dd className="mt-1 text-sm text-ink-muted">
+              {pedido.cliente_whatsapp}
+            </dd>
           </div>
-        </div>
+        </dl>
 
-        {/* Desglose de ítems (carrito multi-producto) */}
+        {/* Desglose de un pedido con varios ítems */}
         {isMultiItem && (
-          <div className="mt-6 border-t border-kdb-border pt-6">
-            <span className="text-xs text-text-secondary uppercase tracking-wider block mb-3">
-              Productos del pedido
-            </span>
-            <div className="divide-y divide-kdb-border">
+          <div className="border-t border-line p-6 md:p-8">
+            <p className="text-eyebrow text-ink-muted">Productos del pedido</p>
+
+            <ul className="mt-4">
               {items.map((item) => (
-                <div key={item.id} className="flex items-center justify-between py-3 gap-4">
+                <li
+                  key={item.id}
+                  className="flex items-baseline justify-between gap-4 border-b border-line py-3"
+                >
                   <div className="min-w-0">
-                    <p className="text-sm text-text-primary truncate">{item.producto_nombre}</p>
-                    <p className="text-xs text-text-secondary mt-0.5">
-                      {item.talla ? `Talla ${item.talla} · ` : ''}Cant. {item.cantidad}
+                    <p className="truncate text-sm text-ink">
+                      {item.producto_nombre}
+                    </p>
+                    <p className="mt-1 text-xs text-ink-muted">
+                      {item.talla ? `Talla ${item.talla} · ` : ''}
+                      Cantidad {item.cantidad}
                     </p>
                   </div>
-                  <span className="text-sm text-gold font-medium shrink-0">
+                  <span className="text-price shrink-0 text-ink">
                     {formatPrice(item.subtotal)}
                   </span>
-                </div>
+                </li>
               ))}
-            </div>
-            <div className="flex items-center justify-between pt-3 mt-1 border-t border-kdb-border">
-              <span className="text-sm font-semibold text-text-primary uppercase tracking-wider">Total</span>
-              <span className="text-base font-semibold text-gold">{formatPrice(pedido.total || 0)}</span>
+            </ul>
+
+            <div className="flex items-baseline justify-between pt-4">
+              <span className="text-eyebrow text-ink">Total</span>
+              <span className="text-base text-ink">
+                {formatPrice(pedido.total || 0)}
+              </span>
             </div>
           </div>
         )}
 
         {pedido.notas && (
-          <div className="mt-6 p-4 bg-kdb-elevated border border-kdb-border rounded-sm">
-            <span className="text-xs text-text-secondary uppercase tracking-wider block mb-1">Notas del pedido:</span>
-            <p className="text-sm text-text-primary italic">&quot;{pedido.notas}&quot;</p>
+          <div className="border-t border-line bg-surface-muted p-6 md:p-8">
+            <p className="text-eyebrow text-ink-muted">Notas del pedido</p>
+            <p className="mt-3 text-sm leading-relaxed text-ink">{pedido.notas}</p>
           </div>
         )}
       </div>
 
-      {/* Cancelled Alert */}
-      {isCancelled && (
-        <div className="bg-[#E53E3E]/10 border border-[#E53E3E]/20 text-[#E53E3E] p-6 flex gap-4 rounded-sm">
-          <AlertTriangle className="w-6 h-6 shrink-0" />
-          <div>
-            <h3 className="font-semibold text-base uppercase tracking-wider">Pedido Cancelado</h3>
-            <p className="text-sm opacity-90 mt-1">
-              Este pedido ha sido cancelado. Si crees que esto es un error o deseas más información, contáctanos.
+      {/* Pedido cancelado */}
+      {isCancelled ? (
+        <div className="border-l-2 border-danger pl-5">
+          <h3 className="text-product text-danger">Pedido cancelado</h3>
+          <p className="mt-3 text-sm leading-relaxed text-ink-muted">
+            Este pedido fue cancelado. Si creés que es un error, escribinos y lo
+            revisamos.
+          </p>
+          {getStatusNote('cancelado') && (
+            <p className="mt-3 text-sm text-ink">
+              Motivo: {getStatusNote('cancelado')}
             </p>
-            {getStatusNote('cancelado') && (
-              <p className="text-sm font-medium mt-2">Motivo: &quot;{getStatusNote('cancelado')}&quot;</p>
-            )}
-          </div>
+          )}
         </div>
-      )}
-
-      {/* Vertical Timeline */}
-      {!isCancelled && (
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="bg-kdb-card border border-kdb-border p-6 md:p-8 rounded-sm"
-        >
-          <h3 className="font-[family-name:var(--font-bebas-neue)] text-xl text-text-primary tracking-widest uppercase mb-8 border-b border-kdb-border pb-4">
-            Estado del Envío
+      ) : (
+        /* Secuencia de estados */
+        <div>
+          <h3 className="text-eyebrow border-b border-line pb-4 text-ink">
+            Estado del envío
           </h3>
 
-          <div className="relative pl-8 md:pl-10 space-y-10">
-            {/* Background Line */}
-            <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-kdb-border" />
-
+          <ol className="mt-2">
             {steps.map((step) => {
-              const stepIndexInGlobal = getEstadoIndex(step.value);
-              const isCompleted = stepIndexInGlobal < currentStatusIndex || (stepIndexInGlobal === currentStatusIndex && pedido.estado !== 'cancelado');
-              const isCurrent = stepIndexInGlobal === currentStatusIndex;
+              const stepIndex = getEstadoIndex(step.value);
+              const isDone = stepIndex <= currentStatusIndex;
+              const isCurrent = stepIndex === currentStatusIndex;
               const date = getStatusDate(step.value);
               const note = getStatusNote(step.value);
 
               return (
-                <motion.div key={step.value} variants={itemVariants} className="relative flex flex-col md:flex-row md:items-start gap-4">
-                  {/* Indicator Dot */}
-                  <div className="absolute -left-8 md:-left-10 top-0.5 flex items-center justify-center z-10">
-                    {isCompleted ? (
-                      <div className="w-8 h-8 rounded-full bg-gold border-2 border-gold flex items-center justify-center text-black">
-                        <Check className="w-4 h-4" strokeWidth={3} />
-                      </div>
-                    ) : isCurrent ? (
-                      <div className="w-8 h-8 rounded-full bg-kdb-bg border-2 border-gold flex items-center justify-center relative">
-                        <div className="w-3 h-3 rounded-full bg-gold animate-ping absolute" />
-                        <div className="w-3 h-3 rounded-full bg-gold relative" />
-                      </div>
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-kdb-bg border-2 border-kdb-border flex items-center justify-center text-text-muted">
-                        <div className="w-2.5 h-2.5 rounded-full bg-kdb-border" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Text Details */}
-                  <div className="flex-1">
-                    <h4
-                      className={`text-base font-semibold transition-colors duration-200 ${
-                        isCurrent ? 'text-gold' : isCompleted ? 'text-text-primary' : 'text-text-muted'
-                      }`}
+                <li
+                  key={step.value}
+                  aria-current={isCurrent ? 'step' : undefined}
+                  className={cn(
+                    'flex flex-col gap-2 border-b border-line py-5 md:flex-row md:items-baseline md:justify-between',
+                    // El estado actual se marca con borde y peso, no solo con
+                    // color: la información no debe depender del color.
+                    isCurrent && 'border-l-2 border-l-ink pl-4',
+                  )}
+                >
+                  <div className="min-w-0">
+                    <p
+                      className={cn(
+                        'text-sm',
+                        isCurrent
+                          ? 'font-semibold text-ink'
+                          : isDone
+                            ? 'text-ink'
+                            : 'text-ink-subtle',
+                      )}
                     >
                       {step.label}
-                    </h4>
-
-                    {note && <p className="text-sm text-text-secondary mt-1">{note}</p>}
-                  </div>
-
-                  {/* Timestamp */}
-                  <div className="md:w-48 text-left md:text-right shrink-0 mt-1 md:mt-0">
-                    {date ? (
-                      <span className="text-xs text-text-secondary block font-medium">{date}</span>
-                    ) : (
-                      <span className="text-xs text-text-muted block italic">Pendiente</span>
+                    </p>
+                    {note && (
+                      <p className="mt-1.5 text-xs text-ink-muted">{note}</p>
                     )}
                   </div>
-                </motion.div>
+
+                  <p className="shrink-0 text-xs text-ink-muted md:text-right">
+                    {date ?? 'Pendiente'}
+                  </p>
+                </li>
               );
             })}
-          </div>
-        </motion.div>
+          </ol>
+        </div>
       )}
 
-      {/* WhatsApp Help CTA */}
-      <div className="text-center pt-4">
+      {/* Consulta */}
+      <div className="text-center">
         <a
-          href={getWhatsAppLink(`Hola! Quisiera consultar sobre el estado de mi pedido ${pedido.numero_pedido}.`)}
+          href={getWhatsAppLink(
+            `Hola, quisiera consultar sobre el estado de mi pedido ${pedido.numero_pedido}.`,
+          )}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 bg-[#25D366] text-[#0A0A0A] hover:bg-[#20ba56] transition-colors py-3.5 px-8 font-semibold tracking-wider text-sm rounded-sm"
+          className="inline-flex h-14 items-center justify-center border border-ink px-10 text-xs font-medium uppercase tracking-[0.2em] text-ink transition-colors hover:bg-ink hover:text-ink-inverse"
         >
-          <MessageCircle className="w-5 h-5 fill-current" />
-          CONSULTAR ESTADO POR WHATSAPP
+          Consultar por WhatsApp
         </a>
       </div>
     </div>

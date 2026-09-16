@@ -7,7 +7,7 @@ interface ToggleSwitchProps {
   onChange: (next: boolean) => void;
   /** Texto para lectores de pantalla (obligatorio: el switch no tiene texto visible). */
   label: string;
-  /** Clase de color cuando está activo (ej. 'bg-gold', 'bg-success'). */
+  /** Clase de fondo cuando está activo. */
   activeColor?: string;
   disabled?: boolean;
 }
@@ -20,7 +20,7 @@ export function ToggleSwitch({
   checked,
   onChange,
   label,
-  activeColor = 'bg-gold',
+  activeColor = 'bg-ink',
   disabled = false,
 }: ToggleSwitchProps) {
   return (
@@ -33,9 +33,9 @@ export function ToggleSwitch({
       onClick={() => onChange(!checked)}
       className={cn(
         'relative w-10 h-5 rounded-full transition-colors shrink-0',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-kdb-bg',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
         'disabled:opacity-50 disabled:cursor-not-allowed',
-        checked ? activeColor : 'bg-kdb-elevated'
+        checked ? activeColor : 'bg-surface-sunken'
       )}
     >
       <span

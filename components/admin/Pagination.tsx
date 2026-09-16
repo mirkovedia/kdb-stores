@@ -53,10 +53,10 @@ export function Pagination({
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-      <p className="text-sm text-text-muted">
-        Mostrando <span className="text-text-secondary">{from}</span>–
-        <span className="text-text-secondary">{to}</span> de{' '}
-        <span className="text-text-secondary">{totalItems}</span> {itemLabel}
+      <p className="text-sm text-ink-muted">
+        Mostrando <span className="text-ink">{from}</span>–
+        <span className="text-ink">{to}</span> de{' '}
+        <span className="text-ink">{totalItems}</span> {itemLabel}
         {totalItems !== 1 ? 's' : ''}
       </p>
 
@@ -64,7 +64,7 @@ export function Pagination({
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="p-2 rounded-md text-text-secondary hover:text-text-primary hover:bg-kdb-elevated transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+          className="rounded-md p-2 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink disabled:cursor-not-allowed disabled:text-ink-subtle disabled:hover:bg-transparent"
           aria-label="Página anterior"
         >
           <ChevronLeft className="w-4 h-4" />
@@ -72,7 +72,7 @@ export function Pagination({
 
         {pages.map((p, i) =>
           p === '…' ? (
-            <span key={`gap-${i}`} className="px-2 text-text-muted select-none">
+            <span key={`gap-${i}`} className="select-none px-2 text-ink-subtle">
               …
             </span>
           ) : (
@@ -81,10 +81,10 @@ export function Pagination({
               onClick={() => onPageChange(p)}
               aria-current={p === currentPage ? 'page' : undefined}
               className={cn(
-                'min-w-9 h-9 px-2 rounded-md text-sm font-medium transition-colors',
+                'h-9 min-w-9 rounded-md px-2 text-sm transition-colors',
                 p === currentPage
-                  ? 'bg-gold text-kdb-bg'
-                  : 'text-text-secondary hover:text-text-primary hover:bg-kdb-elevated'
+                  ? 'bg-ink text-ink-inverse'
+                  : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
               )}
             >
               {p}
@@ -95,7 +95,7 @@ export function Pagination({
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="p-2 rounded-md text-text-secondary hover:text-text-primary hover:bg-kdb-elevated transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+          className="rounded-md p-2 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink disabled:cursor-not-allowed disabled:text-ink-subtle disabled:hover:bg-transparent"
           aria-label="Página siguiente"
         >
           <ChevronRight className="w-4 h-4" />

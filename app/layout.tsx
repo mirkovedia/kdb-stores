@@ -1,21 +1,16 @@
 import type { Metadata } from "next";
-import { Inter, Bebas_Neue } from "next/font/google";
+import { Jost } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { WhatsAppButton } from "@/components/layout/WhatsAppButton";
 import { CartProvider } from "@/context/CartContext";
 
-const inter = Inter({
-  variable: "--font-inter",
+// Familia única del sitio: la jerarquía se construye con peso y tracking.
+const jost = Jost({
+  variable: "--font-jost",
   subsets: ["latin"],
-  display: "swap",
-});
-
-const bebasNeue = Bebas_Neue({
-  variable: "--font-bebas-neue",
-  weight: "400",
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -65,11 +60,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="es"
-      className={`${inter.variable} ${bebasNeue.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col bg-[#0A0A0A] text-[#F5F5F5]">
+    <html lang="es" className={`${jost.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col bg-surface text-ink">
         <CartProvider>
           <Navbar />
           <main className="flex-1">{children}</main>

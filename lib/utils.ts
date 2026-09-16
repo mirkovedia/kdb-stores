@@ -60,19 +60,27 @@ export const ESTADO_LABELS: Record<EstadoPedido, string> = {
   cancelado: 'Cancelado',
 };
 
-/** Colores de estado. Fuente única para dashboard y gestión de pedidos. */
-export const ESTADO_COLORS: Record<EstadoPedido, { bg: string; text: string }> = {
-  pendiente: { bg: 'bg-yellow-500/15', text: 'text-yellow-400' },
-  confirmado: { bg: 'bg-blue-500/15', text: 'text-blue-400' },
-  en_proceso: { bg: 'bg-purple-500/15', text: 'text-purple-400' },
-  listo: { bg: 'bg-cyan-500/15', text: 'text-cyan-400' },
-  enviado: { bg: 'bg-orange-500/15', text: 'text-orange-400' },
-  entregado: { bg: 'bg-green-500/15', text: 'text-green-400' },
-  cancelado: { bg: 'bg-red-500/15', text: 'text-red-400' },
-};
+/**
+ * Estilo de celda de encabezado de tabla del admin. Vive acá —y no en
+ * SortableHeader, que es 'use client'— para que el dashboard (Server
+ * Component) pueda usarlo sin arrastrar ese módulo al bundle del cliente.
+ */
+export const TH_CLASSES =
+  'px-4 py-3 text-left text-[0.6875rem] font-medium uppercase tracking-[0.12em] text-ink-muted';
 
-export const PLACEHOLDER_SNEAKER =
-  'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800';
+/**
+ * Colores de estado. Fuente única para dashboard y gestión de pedidos.
+ * Tonos 700 sobre fondos 50: legibles sobre el fondo blanco del sitio.
+ */
+export const ESTADO_COLORS: Record<EstadoPedido, { bg: string; text: string }> = {
+  pendiente: { bg: 'bg-amber-50', text: 'text-amber-700' },
+  confirmado: { bg: 'bg-blue-50', text: 'text-blue-700' },
+  en_proceso: { bg: 'bg-purple-50', text: 'text-purple-700' },
+  listo: { bg: 'bg-cyan-50', text: 'text-cyan-700' },
+  enviado: { bg: 'bg-orange-50', text: 'text-orange-700' },
+  entregado: { bg: 'bg-green-50', text: 'text-green-700' },
+  cancelado: { bg: 'bg-red-50', text: 'text-red-700' },
+};
 
 export const PLACEHOLDER_IMAGES = [
   'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800',

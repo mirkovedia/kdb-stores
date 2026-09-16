@@ -10,22 +10,24 @@ interface SizeSelectorProps {
 
 export function SizeSelector({ sizes, selectedSize, onSelect }: SizeSelectorProps) {
   if (sizes.length === 0) {
-    return (
-      <p className="text-sm text-text-muted italic">Talla única</p>
-    );
+    return <p className="text-sm text-ink-muted">Talla única</p>;
   }
 
   return (
-    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+    <div className="flex flex-wrap gap-2">
       {sizes.map((size) => (
         <button
           key={size}
+          type="button"
           onClick={() => onSelect(size)}
+          // Botón de dos estados: sin aria-pressed, un lector de pantalla no
+          // anuncia cuál talla está elegida.
+          aria-pressed={selectedSize === size}
           className={cn(
-            'min-w-[48px] h-12 flex items-center justify-center text-sm font-medium border rounded-sm transition-all duration-200',
+            'flex h-12 min-w-[3rem] items-center justify-center border px-3 text-nav transition-colors',
             selectedSize === size
-              ? 'bg-gold text-black border-gold'
-              : 'border-kdb-border text-text-primary hover:border-gold hover:text-gold'
+              ? 'border-ink bg-ink text-ink-inverse'
+              : 'border-line text-ink hover:border-ink',
           )}
         >
           {size}

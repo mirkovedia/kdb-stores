@@ -1,7 +1,7 @@
 'use client';
 
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, TH_CLASSES } from '@/lib/utils';
 
 export type SortDir = 'asc' | 'desc';
 export interface SortState {
@@ -26,8 +26,7 @@ interface SortableHeaderProps {
   className?: string;
 }
 
-const thBase =
-  'text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider';
+const thBase = TH_CLASSES;
 
 /** Encabezado de tabla ordenable, con aria-sort para lectores de pantalla. */
 export function SortableHeader({
@@ -49,7 +48,7 @@ export function SortableHeader({
       <button
         type="button"
         onClick={() => onSort(sortKey)}
-        className="inline-flex items-center gap-1 uppercase tracking-wider hover:text-gold-light focus:outline-none focus-visible:ring-2 focus-visible:ring-gold rounded-sm transition-colors"
+        className="inline-flex items-center gap-1.5 rounded-sm uppercase tracking-[0.12em] transition-colors hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-ink"
       >
         {label}
         {active ? (

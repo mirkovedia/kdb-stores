@@ -1,202 +1,68 @@
-'use client';
+import Image from 'next/image';
+import Link from 'next/link';
 
-import { useCallback } from 'react';
-import {
-  motion,
-  useMotionValue,
-  useSpring,
-  useTransform,
-  Variants,
-} from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
-import { GoldButton } from '@/components/ui/GoldButton';
+/*
+  Hero editorial: una imagen a sangre, un título y dos acciones.
 
-// Posiciones fijas (no aleatorias) para evitar mismatch de hidratación
-const EMBERS = [
-  { left: '6%', size: 4, delay: 0, duration: 13 },
-  { left: '14%', size: 3, delay: 4.5, duration: 16 },
-  { left: '22%', size: 5, delay: 2, duration: 12 },
-  { left: '31%', size: 3, delay: 7, duration: 15 },
-  { left: '39%', size: 4, delay: 1, duration: 14 },
-  { left: '47%', size: 3, delay: 5.5, duration: 17 },
-  { left: '55%', size: 5, delay: 3, duration: 12.5 },
-  { left: '63%', size: 3, delay: 8, duration: 15.5 },
-  { left: '71%', size: 4, delay: 0.5, duration: 13.5 },
-  { left: '79%', size: 3, delay: 6, duration: 16.5 },
-  { left: '87%', size: 5, delay: 2.5, duration: 12 },
-  { left: '94%', size: 3, delay: 9, duration: 14.5 },
-];
+  No es h-screen a propósito — deja que la primera fila de productos asome
+  por debajo del pliegue, que es lo que comunica "tienda" en vez de "campaña".
+  Server Component: no hay parallax, partículas ni estado.
 
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.3,
-    },
-  },
-};
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: 'easeOut' },
-  },
-};
-
+  La altura usa h-[min(78vh,860px)] en lugar de min-h + max-h porque en CSS
+  min-height siempre gana sobre max-height: con ese par, el tope de 860px
+  nunca se aplicaría en pantallas altas. min() resuelve el límite antes.
+*/
 export function Hero() {
-  // Parallax del fondo siguiendo el mouse
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const bgX = useSpring(useTransform(mouseX, [-0.5, 0.5], [12, -12]), {
-    stiffness: 50,
-    damping: 20,
-  });
-  const bgY = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), {
-    stiffness: 50,
-    damping: 20,
-  });
-
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLElement>) => {
-      const { innerWidth, innerHeight } = window;
-      mouseX.set(e.clientX / innerWidth - 0.5);
-      mouseY.set(e.clientY / innerHeight - 0.5);
-    },
-    [mouseX, mouseY],
-  );
-
   return (
-    <section
-      onMouseMove={handleMouseMove}
-      className="relative h-screen w-full overflow-hidden bg-black"
-    >
-      {/* Background image with Ken Burns effect + mouse parallax */}
-      <motion.div style={{ x: bgX, y: bgY }} className="absolute -inset-4">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-100 animate-kenburns"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1556906781-9a412961c28c?w=1920&q=80')",
-          }}
-        />
-      </motion.div>
+    <section className="relative flex h-[min(78vh,860px)] min-h-[30rem] items-end overflow-hidden bg-surface-muted">
+      <Image
+        src="https://images.unsplash.com/photo-1556906781-9a412961c28c?w=2000&q=85"
+        alt=""
+        aria-hidden="true"
+        fill
+        priority
+        className="object-cover object-center"
+        sizes="100vw"
+        unoptimized
+      />
 
-      {/* Dark overlay gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/40 to-black/90" />
+      {/*
+        Degradado solo desde abajo: la foto queda limpia arriba y el texto
+        conserva contraste donde se apoya.
+      */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-      {/* Ambient radial glow in center */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-gold/10 blur-[100px] md:blur-[180px] rounded-full pointer-events-none z-0" />
+      <div className="container-kdb relative z-10 pb-14 md:pb-20">
+        <div className="max-w-2xl animate-fade-in-up">
+          <p className="text-eyebrow text-white/80">Nueva temporada</p>
 
-      {/* Subtle grain texture */}
-      <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml,%3Csvg viewBox=%220 0 256 256%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E')]" />
+          <h1 className="text-display mt-5 text-white">
+            Kicks
+            <br />
+            D&apos;Barrio
+          </h1>
 
-      {/* Gold ember particles rising */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-[5]" aria-hidden="true">
-        {EMBERS.map((ember, i) => (
-          <span
-            key={i}
-            className="ember"
-            style={{
-              left: ember.left,
-              width: ember.size,
-              height: ember.size,
-              animationDelay: `${ember.delay}s`,
-              animationDuration: `${ember.duration}s`,
-            }}
-          />
-        ))}
-      </div>
+          <p className="mt-6 max-w-md text-base leading-relaxed text-white/90">
+            Sneakers y streetwear originales, seleccionados uno por uno y
+            entregados en todo el Perú.
+          </p>
 
-      {/* Drops badge - top right */}
-      <motion.div
-        initial={{ opacity: 0, x: 50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6, delay: 1.2 }}
-        className="absolute top-24 md:top-28 right-4 md:right-8 z-20"
-      >
-        <div className="animate-pulse-gold bg-kdb-card/90 backdrop-blur-md border border-gold/30 px-4 py-2 rounded-sm shadow-glow-gold">
-          <span className="text-xs md:text-sm text-gold tracking-wider font-semibold">
-            🔥 Drops semanales Supreme
-          </span>
+          <div className="mt-9 flex flex-wrap gap-3">
+            <Link
+              href="/catalogo"
+              className="inline-flex h-14 items-center justify-center border border-white bg-white px-10 text-xs font-medium uppercase tracking-[0.2em] text-ink transition-colors duration-200 hover:bg-transparent hover:text-white"
+            >
+              Ver catálogo
+            </Link>
+            <Link
+              href="/pedidos"
+              className="inline-flex h-14 items-center justify-center border border-white/70 px-10 text-xs font-medium uppercase tracking-[0.2em] text-white transition-colors duration-200 hover:border-white hover:bg-white hover:text-ink"
+            >
+              Hacer un pedido
+            </Link>
+          </div>
         </div>
-      </motion.div>
-
-      {/* Main content */}
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4"
-      >
-        {/* Small tagline above title */}
-        <motion.p
-          variants={itemVariants}
-          className="text-text-secondary text-xs md:text-sm uppercase tracking-[0.35em] mb-4 font-semibold"
-        >
-          Sneakers &amp; Streetwear Premium
-        </motion.p>
-
-        {/* Main title */}
-        <motion.h1
-          variants={itemVariants}
-          className="font-[family-name:var(--font-bebas-neue)] text-7xl md:text-[140px] lg:text-[160px] text-gold-gradient leading-none tracking-tight drop-shadow-[0_5px_15px_rgba(0,0,0,0.6)] select-none"
-        >
-          KICKS D&apos;BARRIO
-        </motion.h1>
-
-        {/* Subtitle */}
-        <motion.p
-          variants={itemVariants}
-          className="text-white/95 text-lg md:text-xl tracking-[0.15em] mt-4 md:mt-6 font-medium max-w-lg"
-        >
-          Originales. Exclusivos. <span className="text-gold font-semibold">A tu puerta.</span>
-        </motion.p>
-
-        {/* CTA Buttons */}
-        <motion.div
-          variants={itemVariants}
-          className="flex flex-col sm:flex-row gap-4 mt-8 md:mt-10"
-        >
-          <GoldButton
-            href="/catalogo"
-            variant="filled"
-            size="lg"
-            className="hover:shadow-[0_0_25px_rgba(201,168,76,0.35)] transition-all duration-300"
-          >
-            Ver Catálogo
-          </GoldButton>
-          <GoldButton
-            href="/pedidos"
-            variant="outline"
-            size="lg"
-            className="hover:shadow-[0_0_20px_rgba(201,168,76,0.15)] transition-all duration-300"
-          >
-            Hacer un Pedido
-          </GoldButton>
-        </motion.div>
-      </motion.div>
-
-      {/* Scroll indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2, duration: 0.8 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2"
-      >
-        <span className="text-text-muted text-[10px] uppercase tracking-[0.2em]">
-          Scroll
-        </span>
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-        >
-          <ChevronDown size={20} className="text-gold" />
-        </motion.div>
-      </motion.div>
+      </div>
     </section>
   );
 }

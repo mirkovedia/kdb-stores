@@ -40,17 +40,17 @@ function CatalogoContent() {
   );
 
   return (
-    <div className="min-h-screen bg-kdb-bg">
-      {/* Header */}
-      <div className="container-kdb pt-8 pb-6">
-        <h1 className="text-5xl md:text-6xl font-[family-name:var(--font-bebas-neue)] text-text-primary tracking-wide">
-          CATÁLOGO
-        </h1>
-        <p className="text-text-secondary mt-2 text-sm">
-          {filters.busqueda ? (
+    <div className="bg-surface">
+      {/* Encabezado */}
+      <div className="container-kdb py-12 text-center md:py-16">
+        <h1 className="text-section text-ink">Catálogo</h1>
+        <p className="mt-4 text-sm text-ink-muted">
+          {loading ? (
+            'Cargando productos'
+          ) : filters.busqueda ? (
             <>
               {products.length} resultado{products.length !== 1 ? 's' : ''} para{' '}
-              <span className="text-gold">&quot;{filters.busqueda}&quot;</span>
+              <span className="text-ink">&quot;{filters.busqueda}&quot;</span>
             </>
           ) : (
             <>
@@ -60,11 +60,11 @@ function CatalogoContent() {
         </p>
       </div>
 
-      {/* Filters */}
+      {/* Filtros */}
       <FilterBar filters={filters} onChange={handleChange} />
 
-      {/* Product Grid */}
-      <div className="container-kdb py-8">
+      {/* Grilla */}
+      <div className="container-kdb py-12 md:py-16">
         <ProductGrid products={products} loading={loading} />
       </div>
     </div>
@@ -73,7 +73,13 @@ function CatalogoContent() {
 
 export default function CatalogoPage() {
   return (
-    <Suspense fallback={<div className="container-kdb py-20 text-text-secondary">Cargando catálogo...</div>}>
+    <Suspense
+      fallback={
+        <div className="container-kdb py-24 text-center text-sm text-ink-muted">
+          Cargando catálogo…
+        </div>
+      }
+    >
       <CatalogoContent />
     </Suspense>
   );

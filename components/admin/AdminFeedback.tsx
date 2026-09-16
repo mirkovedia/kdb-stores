@@ -72,15 +72,15 @@ export function useAdminFeedback(): AdminFeedbackContextValue {
 const toastStyles: Record<ToastType, { icon: ReactNode; border: string }> = {
   success: {
     icon: <CheckCircle2 className="w-5 h-5 text-success" />,
-    border: 'border-success/30',
+    border: 'border-success/40',
   },
   error: {
     icon: <XCircle className="w-5 h-5 text-danger" />,
-    border: 'border-danger/30',
+    border: 'border-danger/40',
   },
   info: {
-    icon: <Info className="w-5 h-5 text-gold" />,
-    border: 'border-gold/30',
+    icon: <Info className="w-5 h-5 text-ink" />,
+    border: 'border-line',
   },
 };
 
@@ -169,15 +169,15 @@ export function AdminFeedbackProvider({ children }: { children: ReactNode }) {
               exit={{ opacity: 0, x: 40, scale: 0.95 }}
               transition={{ type: 'spring', stiffness: 400, damping: 30 }}
               className={cn(
-                'flex items-start gap-3 p-4 rounded-md bg-kdb-card border shadow-lg',
+                'flex items-start gap-3 rounded-md border bg-surface p-4 shadow-lg',
                 toastStyles[t.type].border
               )}
             >
               <span className="shrink-0 mt-0.5">{toastStyles[t.type].icon}</span>
-              <p className="flex-1 text-sm text-text-primary">{t.message}</p>
+              <p className="flex-1 text-sm text-ink">{t.message}</p>
               <button
                 onClick={() => dismissToast(t.id)}
-                className="shrink-0 text-text-muted hover:text-text-primary transition-colors"
+                className="shrink-0 text-ink-subtle transition-colors hover:text-ink"
                 aria-label="Cerrar"
               >
                 <X className="w-4 h-4" />
@@ -210,7 +210,7 @@ export function AdminFeedbackProvider({ children }: { children: ReactNode }) {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-              className="relative w-full max-w-md bg-kdb-card border border-kdb-border rounded-lg p-6 shadow-2xl"
+              className="relative w-full max-w-md rounded-lg border border-line bg-surface p-6 shadow-2xl"
             >
               <div className="flex items-start gap-3">
                 {confirmState.danger && (
@@ -220,12 +220,12 @@ export function AdminFeedbackProvider({ children }: { children: ReactNode }) {
                   {confirmState.title && (
                     <h3
                       id="confirm-title"
-                      className="text-lg font-semibold text-text-primary mb-1"
+                      className="mb-1 text-base font-semibold text-ink"
                     >
                       {confirmState.title}
                     </h3>
                   )}
-                  <p id="confirm-message" className="text-sm text-text-secondary">
+                  <p id="confirm-message" className="text-sm leading-relaxed text-ink-muted">
                     {confirmState.message}
                   </p>
                 </div>
@@ -234,7 +234,7 @@ export function AdminFeedbackProvider({ children }: { children: ReactNode }) {
               <div className="flex items-center justify-end gap-3 mt-6">
                 <button
                   onClick={() => closeConfirm(false)}
-                  className="px-4 py-2 text-sm text-text-secondary hover:text-text-primary rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-gold transition-colors"
+                  className="rounded-md px-4 py-2 text-sm text-ink-muted transition-colors hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-ink"
                 >
                   {confirmState.cancelLabel || 'Cancelar'}
                 </button>
@@ -242,10 +242,10 @@ export function AdminFeedbackProvider({ children }: { children: ReactNode }) {
                   ref={confirmBtnRef}
                   onClick={() => closeConfirm(true)}
                   className={cn(
-                    'px-5 py-2 text-sm font-semibold rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-kdb-card',
+                    'rounded-md px-5 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
                     confirmState.danger
-                      ? 'bg-danger text-white hover:bg-red-600 focus-visible:ring-danger'
-                      : 'bg-gold text-kdb-bg hover:bg-gold-light focus-visible:ring-gold'
+                      ? 'bg-danger text-white hover:bg-red-700 focus-visible:ring-danger'
+                      : 'bg-ink text-ink-inverse hover:bg-ink-muted focus-visible:ring-ink'
                   )}
                 >
                   {confirmState.confirmLabel || 'Confirmar'}

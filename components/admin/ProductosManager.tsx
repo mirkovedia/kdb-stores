@@ -12,7 +12,7 @@ import {
   StarOff,
   Loader2,
 } from 'lucide-react';
-import { cn, formatPrice, PLACEHOLDER_IMAGES } from '@/lib/utils';
+import { cn, formatPrice, PLACEHOLDER_IMAGES, TH_CLASSES } from '@/lib/utils';
 import type { Producto } from '@/types';
 import { createClient } from '@/lib/supabase/client';
 import { useAdminFeedback } from '@/components/admin/AdminFeedback';
@@ -156,16 +156,16 @@ export function ProductosManager({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-[family-name:var(--font-bebas-neue)] text-text-primary tracking-wide">
+          <h1 className="text-xl font-bold uppercase tracking-[0.15em] text-ink">
             Productos
           </h1>
-          <p className="text-sm text-text-secondary mt-1">
+          <p className="mt-2 text-sm text-ink-muted">
             {filteredProductos.length} producto{filteredProductos.length !== 1 ? 's' : ''}
           </p>
         </div>
         <Link
           href="/admin/productos/nuevo"
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold text-kdb-bg font-semibold rounded-md hover:bg-gold-light transition-colors text-sm"
+          className="inline-flex h-11 items-center gap-2 rounded-md border border-ink bg-ink px-5 text-sm text-ink-inverse transition-colors hover:bg-ink-muted hover:border-ink-muted"
         >
           <Plus className="w-4 h-4" />
           Nuevo Producto
@@ -174,22 +174,22 @@ export function ProductosManager({
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
+        <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-subtle" strokeWidth={1.5} />
         <input
           type="text"
           placeholder="Buscar productos..."
           value={search}
           onChange={(e) => handleSearchChange(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 bg-kdb-card border border-kdb-border rounded-md text-text-primary placeholder-text-muted focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors"
+          className="h-12 w-full rounded-md border border-line bg-surface pl-10 pr-4 text-sm text-ink transition-colors placeholder:text-ink-subtle focus:border-ink focus:outline-none"
         />
       </div>
 
       {/* Table */}
-      <div className="bg-kdb-card border border-kdb-border rounded-md overflow-x-auto">
+      <div className="overflow-x-auto rounded-md border border-line bg-surface">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-kdb-border">
-              <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider">
+            <tr className="border-b border-line bg-surface-muted">
+              <th className={TH_CLASSES}>
                 Imagen
               </th>
               <SortableHeader label="Nombre" sortKey="nombre" sort={sort} onSort={handleSort} />
@@ -200,10 +200,10 @@ export function ProductosManager({
                 onSort={handleSort}
                 className="hidden sm:table-cell"
               />
-              <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider hidden md:table-cell">
+              <th className={cn(TH_CLASSES, "hidden md:table-cell")}>
                 Categoría
               </th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider hidden lg:table-cell">
+              <th className={cn(TH_CLASSES, "hidden lg:table-cell")}>
                 Tallas
               </th>
               <SortableHeader
@@ -213,26 +213,26 @@ export function ProductosManager({
                 onSort={handleSort}
                 className="hidden md:table-cell"
               />
-              <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider">
+              <th className={TH_CLASSES}>
                 Disponible
               </th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider hidden sm:table-cell">
+              <th className={cn(TH_CLASSES, "hidden sm:table-cell")}>
                 Destacado
               </th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gold uppercase tracking-wider">
+              <th className={TH_CLASSES}>
                 Acciones
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-kdb-border">
+          <tbody className="divide-y divide-line">
             {pagedProductos.map((producto) => (
               <tr
                 key={producto.id}
-                className="hover:bg-kdb-elevated transition-colors"
+                className="transition-colors hover:bg-surface-muted"
               >
                 {/* Image */}
                 <td className="px-4 py-3">
-                  <div className="relative w-12 h-12 rounded-md overflow-hidden bg-kdb-elevated">
+                  <div className="relative h-12 w-12 overflow-hidden rounded-md bg-surface-muted">
                     <Image
                       src={producto.imagenes[0] || PLACEHOLDER_IMAGES[0]}
                       alt={producto.nombre}
@@ -245,18 +245,18 @@ export function ProductosManager({
 
                 {/* Name */}
                 <td className="px-4 py-3">
-                  <span className="text-sm font-medium text-text-primary line-clamp-2 max-w-[200px]">
+                  <span className="line-clamp-2 max-w-[200px] text-sm text-ink">
                     {producto.nombre}
                   </span>
                 </td>
 
                 {/* Price */}
-                <td className="px-4 py-3 text-sm text-text-secondary whitespace-nowrap hidden sm:table-cell">
+                <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-ink-muted sm:table-cell">
                   {formatPrice(producto.precio)}
                 </td>
 
                 {/* Category */}
-                <td className="px-4 py-3 text-sm text-text-secondary hidden md:table-cell">
+                <td className="hidden px-4 py-3 text-sm text-ink-muted md:table-cell">
                   {producto.categoria?.nombre || 'Sin categoría'}
                 </td>
 
@@ -266,13 +266,13 @@ export function ProductosManager({
                     {producto.tallas_disponibles.slice(0, 4).map((talla) => (
                       <span
                         key={talla}
-                        className="inline-block px-1.5 py-0.5 text-xs bg-kdb-elevated text-text-secondary rounded"
+                        className="inline-block rounded bg-surface-muted px-1.5 py-0.5 text-xs text-ink-muted"
                       >
                         {talla}
                       </span>
                     ))}
                     {producto.tallas_disponibles.length > 4 && (
-                      <span className="text-xs text-text-muted">
+                      <span className="text-xs text-ink-subtle">
                         +{producto.tallas_disponibles.length - 4}
                       </span>
                     )}
@@ -284,7 +284,7 @@ export function ProductosManager({
                   <span
                     className={cn(
                       producto.stock > 0
-                        ? 'text-text-secondary'
+                        ? 'text-ink-muted'
                         : 'text-danger font-medium'
                     )}
                   >
@@ -311,10 +311,10 @@ export function ProductosManager({
                     disabled={busy[`dest:${producto.id}`]}
                     aria-pressed={producto.destacado}
                     aria-label={`${producto.destacado ? 'Quitar de' : 'Marcar como'} destacado: "${producto.nombre}"`}
-                    className="text-text-muted hover:text-gold rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-gold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="rounded-sm text-ink-subtle transition-colors hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-ink disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {producto.destacado ? (
-                      <Star className="w-5 h-5 text-gold fill-gold" />
+                      <Star className="h-5 w-5 fill-ink text-ink" />
                     ) : (
                       <StarOff className="w-5 h-5" />
                     )}
@@ -326,7 +326,7 @@ export function ProductosManager({
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/admin/productos/${producto.id}`}
-                      className="p-1.5 text-text-secondary hover:text-gold rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-gold transition-colors"
+                      className="rounded-sm p-1.5 text-ink-muted transition-colors hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-ink"
                       aria-label={`Editar "${producto.nombre}"`}
                       title="Editar"
                     >
@@ -338,7 +338,7 @@ export function ProductosManager({
                       disabled={busy[`del:${producto.id}`]}
                       aria-label={`Eliminar "${producto.nombre}"`}
                       title="Eliminar"
-                      className="p-1.5 text-text-secondary hover:text-danger rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-danger transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="rounded-sm p-1.5 text-ink-muted transition-colors hover:text-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-danger disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {busy[`del:${producto.id}`] ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -355,7 +355,7 @@ export function ProductosManager({
 
         {filteredProductos.length === 0 && (
           <div className="px-6 py-12 text-center">
-            <p className="text-text-muted text-sm">
+            <p className="text-sm text-ink-muted">
               No se encontraron productos.
             </p>
           </div>

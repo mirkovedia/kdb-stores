@@ -66,7 +66,7 @@ export function ImageUploader({ images, onChange }: ImageUploaderProps) {
           {images.map((url, index) => (
             <div
               key={`${url}-${index}`}
-              className="relative group aspect-square bg-kdb-elevated border border-kdb-border rounded-md overflow-hidden"
+              className="group relative aspect-square overflow-hidden rounded-md border border-line bg-surface-muted"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -75,14 +75,14 @@ export function ImageUploader({ images, onChange }: ImageUploaderProps) {
                 className="w-full h-full object-cover"
               />
               {index === 0 && (
-                <span className="absolute top-1 left-1 bg-gold text-kdb-bg text-[10px] font-semibold px-1.5 py-0.5 rounded-sm">
+                <span className="absolute left-1 top-1 rounded-sm bg-ink px-1.5 py-0.5 text-[10px] font-medium text-ink-inverse">
                   Principal
                 </span>
               )}
               <button
                 type="button"
                 onClick={() => removeImage(index)}
-                className="absolute top-1 right-1 p-1 bg-kdb-bg/80 text-text-secondary hover:text-danger rounded-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute right-1 top-1 rounded-sm bg-surface/90 p-1 text-ink-muted opacity-0 transition-opacity hover:text-danger group-hover:opacity-100"
                 aria-label="Eliminar imagen"
               >
                 <X className="w-4 h-4" />
@@ -97,7 +97,7 @@ export function ImageUploader({ images, onChange }: ImageUploaderProps) {
         type="button"
         onClick={() => fileInputRef.current?.click()}
         disabled={uploading}
-        className="w-full flex flex-col items-center justify-center gap-2 py-8 border-2 border-dashed border-kdb-border rounded-md text-text-secondary hover:border-gold hover:text-gold transition-colors disabled:opacity-60"
+        className="flex w-full flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed border-line py-8 text-ink-muted transition-colors hover:border-ink hover:text-ink disabled:opacity-60"
       >
         {uploading ? (
           <>
@@ -108,7 +108,7 @@ export function ImageUploader({ images, onChange }: ImageUploaderProps) {
           <>
             <Upload className="w-6 h-6" />
             <span className="text-sm">Subir imágenes desde tu dispositivo</span>
-            <span className="text-xs text-text-muted">PNG, JPG o WEBP</span>
+            <span className="text-xs text-ink-subtle">PNG, JPG o WEBP</span>
           </>
         )}
       </button>
@@ -124,7 +124,7 @@ export function ImageUploader({ images, onChange }: ImageUploaderProps) {
       {/* Manual URL input */}
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
-          <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-text-muted pointer-events-none">
+          <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-ink-subtle">
             <LinkIcon className="w-4 h-4" />
           </span>
           <input
@@ -138,13 +138,13 @@ export function ImageUploader({ images, onChange }: ImageUploaderProps) {
               }
             }}
             placeholder="...o pega una URL de imagen"
-            className="w-full pl-9 pr-3 py-2.5 bg-kdb-elevated border border-kdb-border rounded-md text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-gold transition-colors"
+            className="w-full rounded-md border border-line bg-surface py-2.5 pl-9 pr-3 text-sm text-ink transition-colors placeholder:text-ink-subtle focus:border-ink focus:outline-none"
           />
         </div>
         <button
           type="button"
           onClick={addUrl}
-          className="px-4 py-2.5 text-sm border border-kdb-border rounded-md text-text-secondary hover:border-gold hover:text-gold transition-colors"
+          className="rounded-md border border-line px-4 py-2.5 text-sm text-ink-muted transition-colors hover:border-ink hover:text-ink"
         >
           Añadir
         </button>

@@ -12,6 +12,12 @@ import { createClient } from '@/lib/supabase/client';
 import { ImageUploader } from '@/components/admin/ImageUploader';
 import { useAdminFeedback } from '@/components/admin/AdminFeedback';
 import { ToggleSwitch } from '@/components/admin/ToggleSwitch';
+import {
+  ADMIN_INPUT,
+  ADMIN_LABEL,
+  ADMIN_ERROR,
+  ADMIN_CARD,
+} from '@/components/admin/formClasses';
 
 const TALLAS_ROPA = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const TALLAS_CALZADO = ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
@@ -191,17 +197,16 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
     }
   }
 
-  const inputClasses =
-    'w-full px-4 py-3 bg-kdb-elevated border border-kdb-border rounded-md text-text-primary placeholder-text-muted focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors';
-  const labelClasses = 'block text-sm font-medium text-text-secondary mb-2';
-  const errorClasses = 'mt-1.5 text-xs text-danger';
+  const inputClasses = ADMIN_INPUT;
+  const labelClasses = ADMIN_LABEL;
+  const errorClasses = ADMIN_ERROR;
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20 min-h-screen">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-gold mx-auto mb-4" />
-          <p className="text-text-secondary text-sm">Cargando datos del producto...</p>
+          <Loader2 className="mx-auto mb-4 h-7 w-7 animate-spin text-ink-muted" strokeWidth={1.5} />
+          <p className="text-sm text-ink-muted">Cargando datos del producto…</p>
         </div>
       </div>
     );
@@ -213,15 +218,15 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
       <div className="flex items-center gap-4">
         <Link
           href="/admin/productos"
-          className="p-2 text-text-secondary hover:text-text-primary hover:bg-kdb-elevated rounded-md transition-colors"
+          className="rounded-md p-2 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink"
         >
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-3xl font-[family-name:var(--font-bebas-neue)] text-text-primary tracking-wide">
+          <h1 className="text-xl font-bold uppercase tracking-[0.15em] text-ink">
             Editar Producto
           </h1>
-          <p className="text-sm text-text-secondary mt-1">
+          <p className="mt-2 text-sm text-ink-muted">
             Modifica la información de tu inventario
           </p>
         </div>
@@ -229,11 +234,11 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
 
       {/* Interesados en restock */}
       {pendingNotifs > 0 && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gold/5 border border-gold/25 rounded-md p-4">
+        <div className="flex flex-col justify-between gap-3 rounded-md border border-ink bg-surface-muted p-4 sm:flex-row sm:items-center">
           <div className="flex items-center gap-3">
-            <Bell className="w-5 h-5 text-gold shrink-0" />
-            <p className="text-sm text-text-primary">
-              <span className="font-semibold text-gold">{pendingNotifs}</span> persona
+            <Bell className="h-5 w-5 shrink-0 text-ink" strokeWidth={1.5} />
+            <p className="text-sm text-ink">
+              <span className="font-semibold text-ink">{pendingNotifs}</span> persona
               {pendingNotifs !== 1 ? 's' : ''} esperando este producto.
             </p>
           </div>
@@ -241,7 +246,7 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
             type="button"
             onClick={handleSendNotifs}
             disabled={sendingNotifs}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gold text-kdb-bg font-semibold rounded-md hover:bg-gold-light transition-colors text-sm disabled:opacity-50"
+            className="btn-solid h-11 shrink-0 rounded-md px-5"
           >
             {sendingNotifs ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Enviando...</>
@@ -255,8 +260,8 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         {/* Basic Info */}
-        <div className="bg-kdb-card border border-kdb-border rounded-md p-6 space-y-5">
-          <h2 className="text-lg font-[family-name:var(--font-bebas-neue)] text-gold tracking-wide">
+        <div className={`${ADMIN_CARD} space-y-5`}>
+          <h2 className="text-eyebrow text-ink">
             Información Básica
           </h2>
 
@@ -311,8 +316,8 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
         </div>
 
         {/* Pricing */}
-        <div className="bg-kdb-card border border-kdb-border rounded-md p-6 space-y-5">
-          <h2 className="text-lg font-[family-name:var(--font-bebas-neue)] text-gold tracking-wide">
+        <div className={`${ADMIN_CARD} space-y-5`}>
+          <h2 className="text-eyebrow text-ink">
             Precios
           </h2>
 
@@ -361,8 +366,8 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
         </div>
 
         {/* Classification */}
-        <div className="bg-kdb-card border border-kdb-border rounded-md p-6 space-y-5">
-          <h2 className="text-lg font-[family-name:var(--font-bebas-neue)] text-gold tracking-wide">
+        <div className={`${ADMIN_CARD} space-y-5`}>
+          <h2 className="text-eyebrow text-ink">
             Clasificación
           </h2>
 
@@ -408,14 +413,14 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
         </div>
 
         {/* Sizes */}
-        <div className="bg-kdb-card border border-kdb-border rounded-md p-6 space-y-5">
-          <h2 className="text-lg font-[family-name:var(--font-bebas-neue)] text-gold tracking-wide">
+        <div className={`${ADMIN_CARD} space-y-5`}>
+          <h2 className="text-eyebrow text-ink">
             Tallas Disponibles
           </h2>
 
           {/* Clothing sizes */}
           <div>
-            <p className="text-sm text-text-secondary mb-3">Ropa</p>
+            <p className="mb-3 text-sm text-ink-muted">Ropa</p>
             <div className="flex flex-wrap gap-2">
               {TALLAS_ROPA.map((talla) => (
                 <button
@@ -424,8 +429,8 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
                   onClick={() => toggleTalla(talla)}
                   className={
                     tallasValue.includes(talla)
-                      ? 'px-3 py-1.5 rounded-md text-sm font-medium bg-gold text-kdb-bg transition-colors'
-                      : 'px-3 py-1.5 rounded-md text-sm font-medium bg-kdb-elevated border border-kdb-border text-text-secondary hover:border-gold hover:text-gold transition-colors'
+                      ? 'rounded-md border border-ink bg-ink px-3 py-1.5 text-sm transition-colors text-ink-inverse'
+                      : 'rounded-md border border-line bg-surface px-3 py-1.5 text-sm text-ink-muted transition-colors hover:border-ink hover:text-ink'
                   }
                 >
                   {talla}
@@ -436,7 +441,7 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
 
           {/* Shoe sizes */}
           <div>
-            <p className="text-sm text-text-secondary mb-3">Calzado</p>
+            <p className="mb-3 text-sm text-ink-muted">Calzado</p>
             <div className="flex flex-wrap gap-2">
               {TALLAS_CALZADO.map((talla) => (
                 <button
@@ -445,8 +450,8 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
                   onClick={() => toggleTalla(talla)}
                   className={
                     tallasValue.includes(talla)
-                      ? 'px-3 py-1.5 rounded-md text-sm font-medium bg-gold text-kdb-bg transition-colors'
-                      : 'px-3 py-1.5 rounded-md text-sm font-medium bg-kdb-elevated border border-kdb-border text-text-secondary hover:border-gold hover:text-gold transition-colors'
+                      ? 'rounded-md border border-ink bg-ink px-3 py-1.5 text-sm transition-colors text-ink-inverse'
+                      : 'rounded-md border border-line bg-surface px-3 py-1.5 text-sm text-ink-muted transition-colors hover:border-ink hover:text-ink'
                   }
                 >
                   {talla}
@@ -457,8 +462,8 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
         </div>
 
         {/* Images */}
-        <div className="bg-kdb-card border border-kdb-border rounded-md p-6 space-y-5">
-          <h2 className="text-lg font-[family-name:var(--font-bebas-neue)] text-gold tracking-wide">
+        <div className={`${ADMIN_CARD} space-y-5`}>
+          <h2 className="text-eyebrow text-ink">
             Imágenes
           </h2>
 
@@ -466,8 +471,8 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
         </div>
 
         {/* Toggles & Stock */}
-        <div className="bg-kdb-card border border-kdb-border rounded-md p-6 space-y-5">
-          <h2 className="text-lg font-[family-name:var(--font-bebas-neue)] text-gold tracking-wide">
+        <div className={`${ADMIN_CARD} space-y-5`}>
+          <h2 className="text-eyebrow text-ink">
             Opciones
           </h2>
 
@@ -496,12 +501,12 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
             <div className="hidden sm:block" />
 
             {/* Es pedido */}
-            <div className="flex items-center justify-between sm:col-span-2 p-4 bg-kdb-elevated rounded-md">
+            <div className="flex items-center justify-between rounded-md bg-surface-muted p-4 sm:col-span-2">
               <div>
-                <p className="text-sm font-medium text-text-primary">
+                <p className="text-sm font-medium text-ink">
                   Producto por Pedido
                 </p>
-                <p className="text-xs text-text-muted mt-0.5">
+                <p className="mt-1 text-xs text-ink-muted">
                   El producto se importa por encargo
                 </p>
               </div>
@@ -509,17 +514,17 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
                 checked={esPedido}
                 onChange={(v) => setValue('es_pedido', v)}
                 label="Producto por pedido"
-                activeColor="bg-gold"
+                activeColor="bg-ink"
               />
             </div>
 
             {/* Disponible */}
-            <div className="flex items-center justify-between sm:col-span-2 p-4 bg-kdb-elevated rounded-md">
+            <div className="flex items-center justify-between rounded-md bg-surface-muted p-4 sm:col-span-2">
               <div>
-                <p className="text-sm font-medium text-text-primary">
+                <p className="text-sm font-medium text-ink">
                   Disponible
                 </p>
-                <p className="text-xs text-text-muted mt-0.5">
+                <p className="mt-1 text-xs text-ink-muted">
                   Visible en la tienda para los clientes
                 </p>
               </div>
@@ -532,12 +537,12 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
             </div>
 
             {/* Destacado */}
-            <div className="flex items-center justify-between sm:col-span-2 p-4 bg-kdb-elevated rounded-md">
+            <div className="flex items-center justify-between rounded-md bg-surface-muted p-4 sm:col-span-2">
               <div>
-                <p className="text-sm font-medium text-text-primary">
+                <p className="text-sm font-medium text-ink">
                   Destacado
                 </p>
-                <p className="text-xs text-text-muted mt-0.5">
+                <p className="mt-1 text-xs text-ink-muted">
                   Aparece en la sección de productos destacados
                 </p>
               </div>
@@ -545,7 +550,7 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
                 checked={destacado}
                 onChange={(v) => setValue('destacado', v)}
                 label="Producto destacado"
-                activeColor="bg-gold"
+                activeColor="bg-ink"
               />
             </div>
           </div>
@@ -555,21 +560,17 @@ export default function EditarProductoPage({ params }: EditProductPageProps) {
         <div className="flex items-center justify-end gap-4">
           <Link
             href="/admin/productos"
-            className="px-6 py-3 text-sm text-text-secondary hover:text-text-primary transition-colors"
+            className="px-6 py-3 text-sm text-ink-muted transition-colors hover:text-ink"
           >
             Cancelar
           </Link>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex items-center gap-2 px-8 py-3 bg-gold text-kdb-bg font-semibold rounded-md hover:bg-gold-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-solid h-12 rounded-md px-8"
           >
-            {isSubmitting ? (
-              <div className="w-5 h-5 border-2 border-kdb-bg/30 border-t-kdb-bg rounded-full animate-spin" />
-            ) : (
-              <Save className="w-5 h-5" />
-            )}
-            {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
+            {!isSubmitting && <Save size={17} strokeWidth={1.5} />}
+            {isSubmitting ? 'Guardando…' : 'Guardar cambios'}
           </button>
         </div>
       </form>

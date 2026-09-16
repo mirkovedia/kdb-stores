@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Check, AlertCircle } from 'lucide-react';
 import { SizeSelector } from '@/components/producto/SizeSelector';
 import { OrderForm } from '@/components/producto/OrderForm';
 import { RestockNotify } from '@/components/producto/RestockNotify';
@@ -15,13 +14,23 @@ interface ProductPurchasePanelProps {
 }
 
 export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
-  const [selectedSize, setSelectedSize] = useState<string>('');
+  const [selectedSize, setSelectedSize] = useState('');
   const [added, setAdded] = useState(false);
   const [sizeError, setSizeError] = useState(false);
   const { addItem } = useCart();
 
   const needsSize = product.tallas_disponibles.length > 0;
   const agotado = !product.es_pedido && product.stock <= 0;
+  const hasDiscount =
+    product.precio_original !== null && product.precio_original > product.precio;
+
+  // El aviso de "añadido" se limpia solo. Con setTimeout suelto, navegar antes
+  // de los 2s dejaba un setState sobre un componente desmontado.
+  useEffect(() => {
+    if (!added) return;
+    const timer = setTimeout(() => setAdded(false), 2500);
+    return () => clearTimeout(timer);
+  }, [added]);
 
   function handleAddToCart() {
     if (needsSize && !selectedSize) {
@@ -40,121 +49,100 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
       es_pedido: product.es_pedido,
     });
     setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
   }
 
-  const hasDiscount =
-    product.precio_original != null && product.precio_original > product.precio;
-
   return (
-    <div className="flex flex-col justify-between">
-      <div className="space-y-6">
-        <div>
-          {/* Brand */}
-          {product.marca && (
-            <Link
-              href={`/catalogo?marca=${product.marca.slug || product.marca.nombre.toLowerCase()}`}
-              className="text-[#C9A84C] text-sm font-semibold tracking-wider hover:underline uppercase"
-            >
-              {product.marca.nombre}
-            </Link>
-          )}
-          {/* Product Name */}
-          <h1 className="font-[family-name:var(--font-bebas-neue)] text-4xl md:text-5xl text-[#F5F5F5] tracking-wide mt-1">
-            {product.nombre}
-          </h1>
-        </div>
+    // sticky: la galería en desktop es una pila vertical alta, así el panel de
+    // compra sigue visible mientras el cliente recorre las fotos.
+    <div className="lg:sticky lg:top-28">
+      {product.marca && (
+        <Link
+          href={`/catalogo?marca=${product.marca.slug || product.marca.nombre.toLowerCase()}`}
+          className="text-eyebrow link-underline text-ink-muted transition-colors hover:text-ink"
+        >
+          {product.marca.nombre}
+        </Link>
+      )}
 
-        {/* Price */}
-        <div className="flex items-baseline gap-3">
-          <span className="font-[family-name:var(--font-bebas-neue)] text-3xl md:text-4xl text-[#C9A84C]">
-            {formatPrice(product.precio)}
+      <h1 className="text-section mt-4 text-ink">{product.nombre}</h1>
+
+      <div className="mt-5 flex items-baseline gap-3">
+        <span className="text-lg text-ink">{formatPrice(product.precio)}</span>
+        {hasDiscount && product.precio_original !== null && (
+          <span className="text-sm text-ink-subtle line-through">
+            {formatPrice(product.precio_original)}
           </span>
-          {hasDiscount && (
-            <span className="text-[#555555] line-through text-lg">
-              {formatPrice(product.precio_original!)}
-            </span>
-          )}
-        </div>
-
-        {/* Description */}
-        <p className="text-sm md:text-base text-[#A0A0A0] leading-relaxed">
-          {product.descripcion}
-        </p>
-
-        {/* Size Selector */}
-        {product.tallas_disponibles.length > 0 && (
-          <div>
-            <h3 className="text-sm font-medium text-[#F5F5F5] uppercase tracking-wider mb-3">
-              Tallas Disponibles
-            </h3>
-            <SizeSelector
-              sizes={product.tallas_disponibles}
-              selectedSize={selectedSize}
-              onSelect={setSelectedSize}
-            />
-          </div>
-        )}
-
-        {/* es_pedido warning */}
-        {product.es_pedido && (
-          <div className="bg-[#C9A84C]/5 border border-[#C9A84C]/20 p-4 rounded-sm">
-            <p className="text-xs md:text-sm text-[#E4C06A] leading-relaxed">
-              📦 <strong>Este producto se importa a pedido.</strong> Tiempo
-              estimado de entrega: 2 a 3 semanas. Ideal si buscas un modelo
-              exclusivo.
-            </p>
-          </div>
         )}
       </div>
 
-      {/* Producto agotado: aviso de restock en lugar del flujo de compra */}
-      {agotado ? (
+      {product.descripcion && (
+        <p className="mt-6 text-sm leading-relaxed text-ink-muted">
+          {product.descripcion}
+        </p>
+      )}
+
+      {needsSize && (
         <div className="mt-8">
-          <RestockNotify productoId={product.id} talla={needsSize ? selectedSize : undefined} />
+          <h2 className="text-eyebrow mb-4 text-ink">Talla</h2>
+          <SizeSelector
+            sizes={product.tallas_disponibles}
+            selectedSize={selectedSize}
+            onSelect={(size) => {
+              setSelectedSize(size);
+              setSizeError(false);
+            }}
+          />
+        </div>
+      )}
+
+      {product.es_pedido && (
+        <p className="mt-8 border-l-2 border-ink pl-4 text-sm leading-relaxed text-ink-muted">
+          <span className="text-ink">Este producto se importa a pedido.</span>{' '}
+          Entrega estimada: 2 a 3 semanas.
+        </p>
+      )}
+
+      {agotado ? (
+        <div className="mt-10">
+          <RestockNotify
+            productoId={product.id}
+            talla={needsSize ? selectedSize : undefined}
+          />
         </div>
       ) : (
         <>
-      {/* Add to cart */}
-      <div className="mt-8 space-y-3">
-        <button
-          type="button"
-          onClick={handleAddToCart}
-          className="w-full flex items-center justify-center gap-2 border border-gold text-gold font-semibold text-sm tracking-wide uppercase py-3.5 rounded-sm hover:bg-gold/10 transition-colors"
-        >
-          {added ? (
-            <>
-              <Check className="w-4 h-4" /> Añadido al carrito
-            </>
-          ) : (
-            <>
-              <ShoppingBag className="w-4 h-4" /> Agregar al carrito
-            </>
-          )}
-        </button>
-        {sizeError && (
-          <p className="text-xs text-danger flex items-center gap-1">
-            <AlertCircle className="w-3.5 h-3.5" />
-            Selecciona una talla para agregar al carrito.
-          </p>
-        )}
-        {added && (
-          <Link
-            href="/carrito"
-            className="block text-center text-xs text-text-secondary hover:text-gold transition-colors"
-          >
-            Ir al carrito →
-          </Link>
-        )}
-      </div>
+          <div className="mt-10">
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              className="h-14 w-full border border-ink bg-ink text-xs font-medium uppercase tracking-[0.2em] text-ink-inverse transition-colors hover:bg-ink-muted hover:border-ink-muted"
+            >
+              {added ? 'Añadido al carrito' : 'Agregar al carrito'}
+            </button>
 
-      {/* Direct order form (compra inmediata de este producto) */}
-      <div className="mt-8 border-t border-[#222222] pt-8">
-        <p className="text-xs text-text-muted uppercase tracking-widest mb-4">
-          O compra solo este producto ahora
-        </p>
-        <OrderForm product={product} selectedSize={selectedSize} />
-      </div>
+            {sizeError && (
+              <p role="alert" className="mt-3 text-xs text-danger">
+                Elegí una talla para continuar.
+              </p>
+            )}
+
+            {added && (
+              <Link
+                href="/carrito"
+                className="text-nav link-underline mt-4 inline-block text-ink-muted transition-colors hover:text-ink"
+              >
+                Ir al carrito
+              </Link>
+            )}
+          </div>
+
+          {/* Compra directa de este producto, sin pasar por el carrito */}
+          <div className="mt-12 border-t border-line pt-10">
+            <h2 className="text-eyebrow mb-5 text-ink">
+              O pedí solo este producto
+            </h2>
+            <OrderForm product={product} selectedSize={selectedSize} />
+          </div>
         </>
       )}
     </div>

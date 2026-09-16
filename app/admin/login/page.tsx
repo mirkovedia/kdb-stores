@@ -4,9 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { LogIn, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { loginSchema, type LoginFormData } from '@/lib/validations';
-
 import { createClient } from '@/lib/supabase/client';
 
 export default function AdminLoginPage() {
@@ -19,9 +18,7 @@ export default function AdminLoginPage() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-  });
+  } = useForm<LoginFormData>({ resolver: zodResolver(loginSchema) });
 
   async function onSubmit(data: LoginFormData) {
     setIsLoading(true);
@@ -33,9 +30,9 @@ export default function AdminLoginPage() {
         email: data.email,
         password: data.password,
       });
-      
+
       if (error) {
-        setLoginError('Credenciales inválidas. Intenta de nuevo.');
+        setLoginError('Credenciales inválidas. Intentá de nuevo.');
         return;
       }
 
@@ -45,113 +42,98 @@ export default function AdminLoginPage() {
       router.push(dest);
       router.refresh();
     } catch {
-      setLoginError('Error al iniciar sesión. Intenta de nuevo.');
+      setLoginError('Error al iniciar sesión. Intentá de nuevo.');
     } finally {
       setIsLoading(false);
     }
   }
 
+  const inputClasses =
+    'h-12 w-full rounded-md border border-line bg-surface px-4 text-sm text-ink transition-colors placeholder:text-ink-subtle focus:border-ink focus:outline-none';
+
   return (
-    <div className="min-h-screen bg-kdb-bg flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <h1 className="text-6xl font-[family-name:var(--font-bebas-neue)] text-gold tracking-widest">
+    <div className="flex min-h-screen items-center justify-center bg-surface px-4">
+      <div className="w-full max-w-sm">
+        <div className="text-center">
+          <span className="text-2xl font-bold uppercase tracking-[0.3em] text-ink">
             KDB
-          </h1>
-          <p className="text-text-secondary text-sm mt-2 tracking-wide uppercase">
-            Panel Administrativo
-          </p>
+          </span>
+          <p className="text-eyebrow mt-4 text-ink-muted">Panel administrativo</p>
         </div>
 
-        {/* Login Form */}
-        <div className="bg-kdb-card border border-kdb-border rounded-md p-8">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Error message */}
-            {loginError && (
-              <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-md">
-                <AlertCircle className="w-4 h-4 text-danger flex-shrink-0" />
-                <span className="text-sm text-danger">{loginError}</span>
-              </div>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="mt-10 space-y-5 border border-line p-7"
+        >
+          {loginError && (
+            <p role="alert" className="border-l-2 border-danger pl-4 text-sm text-danger">
+              {loginError}
+            </p>
+          )}
+
+          <div>
+            <label htmlFor="email" className="text-eyebrow mb-2 block text-ink">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              placeholder="admin@kdb.pe"
+              className={inputClasses}
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? 'err-login-email' : undefined}
+              {...register('email')}
+            />
+            {errors.email && (
+              <p id="err-login-email" className="mt-2 text-xs text-danger">
+                {errors.email.message}
+              </p>
             )}
+          </div>
 
-            {/* Email */}
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-text-secondary mb-2"
-              >
-                Email
-              </label>
+          <div>
+            <label htmlFor="password" className="text-eyebrow mb-2 block text-ink">
+              Contraseña
+            </label>
+            <div className="relative">
               <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                {...register('email')}
-                className="w-full px-4 py-3 bg-kdb-elevated border border-kdb-border rounded-md text-text-primary placeholder-text-muted focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors"
-                placeholder="admin@kdb.pe"
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                placeholder="••••••••"
+                className={`${inputClasses} pr-12`}
+                aria-invalid={Boolean(errors.password)}
+                aria-describedby={errors.password ? 'err-login-pass' : undefined}
+                {...register('password')}
               />
-              {errors.email && (
-                <p className="mt-1.5 text-xs text-danger">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-
-            {/* Password */}
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-text-secondary mb-2"
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-ink-subtle transition-colors hover:text-ink"
               >
-                Contraseña
-              </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  {...register('password')}
-                  className="w-full px-4 py-3 bg-kdb-elevated border border-kdb-border rounded-md text-text-primary placeholder-text-muted focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors pr-12"
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors"
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
-              {errors.password && (
-                <p className="mt-1.5 text-xs text-danger">
-                  {errors.password.message}
-                </p>
-              )}
+                {showPassword ? (
+                  <EyeOff size={17} strokeWidth={1.5} />
+                ) : (
+                  <Eye size={17} strokeWidth={1.5} />
+                )}
+              </button>
             </div>
+            {errors.password && (
+              <p id="err-login-pass" className="mt-2 text-xs text-danger">
+                {errors.password.message}
+              </p>
+            )}
+          </div>
 
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gold text-kdb-bg font-semibold rounded-md hover:bg-gold-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? (
-                <div className="w-5 h-5 border-2 border-kdb-bg/30 border-t-kdb-bg rounded-full animate-spin" />
-              ) : (
-                <LogIn className="w-5 h-5" />
-              )}
-              {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-            </button>
-          </form>
-        </div>
+          <button type="submit" disabled={isLoading} className="btn-solid h-12 w-full rounded-md">
+            {isLoading ? 'Iniciando sesión…' : 'Iniciar sesión'}
+          </button>
+        </form>
 
-        <p className="text-center text-text-muted text-xs mt-6">
-          KDB Stores — Panel Administrativo
+        <p className="mt-6 text-center text-xs text-ink-subtle">
+          KDB Stores — Panel administrativo
         </p>
       </div>
     </div>

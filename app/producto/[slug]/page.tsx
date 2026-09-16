@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ChevronRight, ArrowLeft } from 'lucide-react';
 import { ProductGallery } from '@/components/producto/ProductGallery';
 import { ProductPurchasePanel } from '@/components/producto/ProductPurchasePanel';
 import { ProductCard } from '@/components/catalogo/ProductCard';
 import { SectionTitle } from '@/components/ui/SectionTitle';
+import { Button } from '@/components/ui/Button';
 import { formatPrice } from '@/lib/utils';
 import { getProductoBySlug, getProductosRelacionados } from '@/lib/productos';
 
@@ -57,20 +57,16 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
   if (!product) {
     return (
-      <div className="container-kdb py-24 text-center">
-        <h2 className="font-[family-name:var(--font-bebas-neue)] text-4xl text-[#F5F5F5] mb-4">
-          PRODUCTO NO ENCONTRADO
-        </h2>
-        <p className="text-text-secondary mb-8">
-          El producto que buscas no existe o fue retirado del catálogo.
+      <div className="container-kdb py-28 text-center">
+        <h2 className="text-section text-ink">Producto no encontrado</h2>
+        <p className="mx-auto mt-5 max-w-sm text-sm leading-relaxed text-ink-muted">
+          El producto que buscás no existe o fue retirado del catálogo.
         </p>
-        <Link
-          href="/catalogo"
-          className="inline-flex items-center gap-2 bg-[#C9A84C] text-[#0A0A0A] px-6 py-3 font-semibold text-sm tracking-wide hover:bg-[#E4C06A] transition-colors rounded-sm"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          VOLVER AL CATÁLOGO
-        </Link>
+        <div className="mt-8 flex justify-center">
+          <Button href="/catalogo" variant="primary" size="md">
+            Volver al catálogo
+          </Button>
+        </div>
       </div>
     );
   }
@@ -104,40 +100,38 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className="container-kdb">
-        {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-xs md:text-sm text-[#A0A0A0] mb-8 overflow-x-auto whitespace-nowrap pb-2">
-          <Link href="/" className="hover:text-[#C9A84C] transition-colors">
+        {/* Ruta de navegación */}
+        <nav
+          aria-label="Ruta de navegación"
+          className="scrollbar-none mb-8 flex items-center gap-2 overflow-x-auto whitespace-nowrap text-xs text-ink-subtle"
+        >
+          <Link href="/" className="transition-colors hover:text-ink">
             Inicio
           </Link>
-          <ChevronRight className="w-4 h-4 text-[#555555]" />
-          <Link href="/catalogo" className="hover:text-[#C9A84C] transition-colors">
+          <span aria-hidden="true">/</span>
+          <Link href="/catalogo" className="transition-colors hover:text-ink">
             Catálogo
           </Link>
-          <ChevronRight className="w-4 h-4 text-[#555555]" />
-          <span className="text-[#F5F5F5] truncate">{product.nombre}</span>
+          <span aria-hidden="true">/</span>
+          <span className="truncate text-ink-muted">{product.nombre}</span>
         </nav>
 
-        {/* 2-Column layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-16 md:mb-24">
-          {/* Left: Gallery */}
+        {/* Galería + compra */}
+        <div className="mb-24 grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-16">
           <div className="lg:col-span-7">
             <ProductGallery imagenes={product.imagenes} nombre={product.nombre} />
           </div>
 
-          {/* Right: Info + purchase (client) */}
           <div className="lg:col-span-5">
             <ProductPurchasePanel product={product} />
           </div>
         </div>
 
-        {/* Related Products */}
+        {/* Relacionados */}
         {relatedProducts.length > 0 && (
-          <div className="border-t border-[#222222] pt-16">
-            <SectionTitle
-              title="También te puede interesar"
-              subtitle="Completa tu outfit con estos recomendados"
-            />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-8">
+          <div className="border-t border-line pt-16 md:pt-20">
+            <SectionTitle title="También te puede interesar" align="center" />
+            <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-4 md:gap-x-6">
               {relatedProducts.map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}

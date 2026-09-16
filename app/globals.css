@@ -1,38 +1,46 @@
 @import "tailwindcss";
 
-@theme inline {
-  --color-background: #0A0A0A;
-  --color-foreground: #F5F5F5;
-  --font-sans: var(--font-inter);
-  --font-display: var(--font-bebas-neue);
+/*
+  Sistema visual KDB Stores — monocromo sobre blanco.
+  Sin color de acento: el único color del sitio lo aportan las fotos de producto.
+*/
 
-  /* KDB Colors */
-  --color-kdb-bg: #0A0A0A;
-  --color-kdb-card: #111111;
-  --color-kdb-elevated: #1A1A1A;
-  --color-kdb-border: #222222;
+@theme {
+  /* Superficies */
+  --color-surface: #ffffff;
+  --color-surface-muted: #f1f1f1;
+  --color-surface-sunken: #e8e8e8;
+  --color-surface-inverse: #0a0a0a;
 
-  --color-gold: #C9A84C;
-  --color-gold-light: #E4C06A;
-  --color-gold-dark: #A8873A;
+  /* Tinta */
+  --color-ink: #0a0a0a;
+  --color-ink-muted: #6b6b6b;
+  --color-ink-subtle: #9b9b9b;
+  --color-ink-inverse: #ffffff;
 
-  --color-text-primary: #F5F5F5;
-  --color-text-secondary: #A0A0A0;
-  --color-text-muted: #555555;
+  /* Líneas */
+  --color-line: #e5e5e5;
+  --color-line-strong: #0a0a0a;
 
-  --color-danger: #E53E3E;
-  --color-success: #38A169;
-  --color-info: #3182CE;
+  /* Estados */
+  --color-danger: #c0392b;
+  --color-success: #1e7e34;
 
-  /* Shadows */
-  --shadow-gold: 0 0 20px rgba(201, 168, 76, 0.2);
-  --shadow-gold-lg: 0 0 40px rgba(201, 168, 76, 0.3);
+  /* Radios: el sistema es de esquinas rectas */
+  --radius-none: 0;
 }
 
-/* Base styles */
+@theme inline {
+  --color-background: var(--color-surface);
+  --color-foreground: var(--color-ink);
+  --font-sans: var(--font-jost);
+}
+
+/* ---------------------------------------------------------------- Base */
+
 * {
   scrollbar-width: thin;
-  scrollbar-color: #333333 #0A0A0A;
+  scrollbar-color: #c4c4c4 #ffffff;
 }
 
 html {
@@ -40,222 +48,100 @@ html {
 }
 
 body {
-  background-color: #0A0A0A;
-  color: #F5F5F5;
-  font-family: var(--font-sans), system-ui, sans-serif;
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-jost), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Selection color */
 ::selection {
-  background-color: rgba(201, 168, 76, 0.3);
-  color: #F5F5F5;
+  background-color: var(--color-ink);
+  color: var(--color-ink-inverse);
 }
 
-/* Custom scrollbar for webkit */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0A0A0A;
+  background: var(--color-surface);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333333;
-  border-radius: 3px;
+  background: #c4c4c4;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #C9A84C;
+  background: var(--color-ink-muted);
 }
 
-/* Animations */
-@keyframes pulse-gold {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 12px rgba(201, 168, 76, 0);
-  }
+/* ------------------------------------------------------- Tipografía */
+
+/*
+  Escala tipográfica del sitio. Una sola familia (Jost); la jerarquía la
+  construyen el peso, el tamaño y el tracking — no fuentes distintas.
+*/
+
+.text-display {
+  font-weight: 700;
+  font-size: clamp(2.5rem, 8vw, 6rem);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
 }
 
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
+.text-section {
+  font-weight: 700;
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  line-height: 1.1;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
 }
 
-@keyframes float-subtle {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-4px);
-  }
+.text-eyebrow {
+  font-weight: 500;
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
+.text-product {
+  font-weight: 600;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
 }
 
-@keyframes kenburns {
-  0% {
-    transform: scale(1) translate(0, 0);
-  }
-  50% {
-    transform: scale(1.06) translate(0.5%, -0.5%);
-  }
-  100% {
-    transform: scale(1) translate(0, 0);
-  }
+.text-price {
+  font-weight: 400;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
 }
 
-@keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
+.text-nav {
+  font-weight: 500;
+  font-size: 0.75rem;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-@keyframes ember-rise {
-  0% {
-    transform: translateY(0) scale(1);
-    opacity: 0;
-  }
-  8% {
-    opacity: 0.7;
-  }
-  70% {
-    opacity: 0.5;
-  }
-  100% {
-    transform: translateY(-105vh) scale(0.35);
-    opacity: 0;
-  }
+.text-body {
+  font-weight: 400;
+  font-size: 1rem;
+  line-height: 1.6;
 }
 
-@keyframes shine {
-  from {
-    transform: translateX(-150%) skewX(-18deg);
-  }
-  to {
-    transform: translateX(400%) skewX(-18deg);
-  }
-}
+/* ---------------------------------------------------------- Layout */
 
-.animate-pulse-gold {
-  animation: pulse-gold 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.animate-float {
-  animation: float 4s ease-in-out infinite;
-}
-
-.animate-float-subtle {
-  animation: float-subtle 3s ease-in-out infinite;
-}
-
-.animate-kenburns {
-  animation: kenburns 25s ease-in-out infinite;
-}
-
-.animate-marquee {
-  animation: marquee 32s linear infinite;
-}
-
-.animate-marquee-slow {
-  animation: marquee 55s linear infinite;
-}
-
-.animate-marquee-reverse {
-  animation: marquee 55s linear infinite reverse;
-}
-
-.marquee-group:hover .animate-marquee,
-.marquee-group:hover .animate-marquee-slow,
-.marquee-group:hover .animate-marquee-reverse {
-  animation-play-state: paused;
-}
-
-/* Gold ember particles (Hero) */
-.ember {
-  position: absolute;
-  bottom: -12px;
-  border-radius: 9999px;
-  background: radial-gradient(circle, #E4C06A 0%, rgba(201, 168, 76, 0.6) 60%, transparent 100%);
-  opacity: 0;
-  pointer-events: none;
-  will-change: transform, opacity;
-  animation: ember-rise linear infinite;
-}
-
-/* Shine sweep on hover (product images) */
-.shine-sweep {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 35%;
-  transform: translateX(-150%) skewX(-18deg);
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent);
-  pointer-events: none;
-  z-index: 10;
-}
-
-.group:hover .shine-sweep {
-  animation: shine 0.85s ease-out;
-}
-
-/* Ghost outline text (marquees) */
-.text-outline-gold {
-  color: transparent;
-  -webkit-text-stroke: 1px rgba(201, 168, 76, 0.45);
-}
-
-/* Skeleton loading */
-.skeleton {
-  background: linear-gradient(90deg, #1A1A1A 25%, #222222 50%, #1A1A1A 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
-}
-
-/* Gold gradient text */
-.text-gold-gradient {
-  background: linear-gradient(135deg, #C9A84C 0%, #F3D995 50%, #A8873A 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Shadow Glows */
-.shadow-glow-gold {
-  box-shadow: 0 0 20px rgba(201, 168, 76, 0.15);
-}
-
-.shadow-glow-gold-lg {
-  box-shadow: 0 0 35px rgba(201, 168, 76, 0.25);
-}
-
-.transition-glow {
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-/* Container */
 .container-kdb {
   width: 100%;
-  max-width: 1440px;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 0 1rem;
 }
@@ -268,29 +154,149 @@ body {
 
 @media (min-width: 1280px) {
   .container-kdb {
-    padding: 0 4rem;
+    padding: 0 3rem;
   }
 }
 
-/* Accessibility: respect reduced motion preference */
+/* --------------------------------------------------------- Movimiento */
+
+/*
+  Solo tres gestos en todo el sitio: crossfade de imagen, hover de link y
+  entrada al viewport. Todo lo demás se eliminó a propósito.
+*/
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-fade-in {
+  animation: fade-in 400ms ease-out both;
+}
+
+/*
+  Subrayado que crece desde la izquierda. Se usa en los links del navbar y
+  del footer: es el único "efecto" de hover del sitio.
+*/
+.link-underline {
+  position: relative;
+}
+
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -0.35em;
+  width: 100%;
+  height: 1px;
+  background-color: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.link-underline:hover::after,
+.link-underline[data-active="true"]::after {
+  transform: scaleX(1);
+}
+
+/* Placeholder de carga: un pulso de gris, sin brillos */
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.skeleton {
+  background-color: var(--color-surface-muted);
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+}
+
+/* ------------------------------------------------------ Botones */
+
+/*
+  Botón sólido del sistema. El estado deshabilitado cambia de color en vez de
+  bajar la opacidad: un negro al 40% sobre blanco da un gris medio que se lee
+  como botón activo de otro color, no como algo inactivo.
+*/
+.btn-solid {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid var(--color-ink);
+  background-color: var(--color-ink);
+  color: var(--color-ink-inverse);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease,
+    color 200ms ease;
+}
+
+.btn-solid:hover:not(:disabled) {
+  background-color: var(--color-ink-muted);
+  border-color: var(--color-ink-muted);
+}
+
+.btn-solid:disabled {
+  border-color: var(--color-line);
+  background-color: var(--color-surface-muted);
+  color: var(--color-ink-subtle);
+  cursor: not-allowed;
+}
+
+/* --------------------------------------------------------- Foco */
+
+/*
+  Anillo de foco visible en negro: accesible sobre blanco y coherente con
+  el sistema monocromo.
+*/
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------- Preferencias de movimiento */
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
 
-  .animate-kenburns,
-  .animate-marquee,
-  .animate-marquee-slow,
-  .animate-marquee-reverse,
-  .animate-pulse-gold,
-  .animate-float,
-  .animate-float-subtle,
-  .ember,
-  .group:hover .shine-sweep {
+  .animate-fade-in-up,
+  .animate-fade-in,
+  .skeleton {
     animation: none;
   }
 
-  .ember {
-    display: none;
+  .link-underline::after {
+    transition: none;
   }
 }
