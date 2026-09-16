@@ -82,7 +82,7 @@ export default function OrderTrackingPage({ params }: TrackingPageProps) {
   }
 
   return (
-    <div className="container-kdb py-12 md:py-20">
+    <div className="container-kdb py-14 md:py-20">
       <div className="mx-auto max-w-4xl">
         <Link
           href="/"

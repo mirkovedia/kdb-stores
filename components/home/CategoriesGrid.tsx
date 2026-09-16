@@ -13,17 +13,24 @@ interface CategoryBanner {
   fotografía manda y el bloque lee como editorial de temporada, sin competir
   con la grilla de productos que va debajo.
 */
+/*
+  Las fotos van en blanco y negro (&sat=-100) para mantener la coherencia con
+  el hero: si la portada es monocroma y estos banners son a color, el sistema
+  se rompe y el hero parece un accidente.
+*/
 const BANNERS: CategoryBanner[] = [
   {
     name: 'Sneakers',
     slug: 'sneakers',
-    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1200&q=85',
+    image:
+      'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1400&q=85&sat=-100',
     caption: 'Jordan, Nike y ediciones limitadas',
   },
   {
     name: 'Streetwear',
     slug: 'supreme',
-    image: 'https://images.unsplash.com/photo-1523398002811-999ca8dec234?w=1200&q=85',
+    image:
+      'https://images.unsplash.com/photo-1523398002811-999ca8dec234?w=1400&q=85&sat=-100',
     caption: 'Supreme, hoodies y ropa gráfica',
   },
 ];

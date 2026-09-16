@@ -42,9 +42,9 @@ function CatalogoContent() {
   return (
     <div className="bg-surface">
       {/* Encabezado */}
-      <div className="container-kdb py-12 text-center md:py-16">
+      <div className="container-kdb py-14 text-center md:py-20">
         <h1 className="text-section text-ink">Catálogo</h1>
-        <p className="mt-4 text-sm text-ink-muted">
+        <p className="mt-5 text-sm text-ink-muted">
           {loading ? (
             'Cargando productos'
           ) : filters.busqueda ? (
@@ -64,7 +64,7 @@ function CatalogoContent() {
       <FilterBar filters={filters} onChange={handleChange} />
 
       {/* Grilla */}
-      <div className="container-kdb py-12 md:py-16">
+      <div className="container-kdb section-y">
         <ProductGrid products={products} loading={loading} />
       </div>
     </div>

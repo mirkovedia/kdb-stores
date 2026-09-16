@@ -37,10 +37,20 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
 
   return (
     <Link href={`/producto/${product.slug}`} className="group block">
-      {/* Imagen */}
       <div className="relative aspect-[4/5] overflow-hidden bg-surface-muted">
+        {/*
+          Las imágenes van en escala de grises y recuperan el color en hover.
+
+          El filtro envuelve solo las imágenes —no el contenedor entero— para
+          que el badge conserve su color: el rojo de "Agotado" es una señal, y
+          en grises dejaría de leerse como advertencia.
+
+          Y va en un div padre en lugar de en cada <Image> porque la card
+          superpone dos para el crossfade: así el navegador resuelve una sola
+          capa en vez de dos.
+        */}
         {primaryImage ? (
-          <>
+          <div className="absolute inset-0 grayscale transition-[filter] duration-300 ease-out group-hover:grayscale-0">
             <Image
               src={primaryImage}
               alt={product.nombre}
@@ -66,7 +76,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
                 unoptimized
               />
             )}
-          </>
+          </div>
         ) : (
           <div className="flex h-full items-center justify-center">
             <span className="text-eyebrow text-ink-subtle">Sin imagen</span>

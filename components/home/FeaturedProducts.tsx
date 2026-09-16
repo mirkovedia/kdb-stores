@@ -41,7 +41,7 @@ export function FeaturedProducts({
   // La cáscara (título + grilla) es la misma con datos o cargando: solo cambia
   // el contenido de las celdas.
   return (
-    <section className="py-16 md:py-24">
+    <section className="section-y">
       <div className="container-kdb">
         <SectionTitle
           title={title}

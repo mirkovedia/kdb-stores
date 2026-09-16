@@ -139,6 +139,33 @@ body {
 
 /* ---------------------------------------------------------- Layout */
 
+/*
+  Ritmo vertical. Dos niveles y nada más: con cinco variantes distintas de
+  padding conviviendo, el ojo percibe que algo no cuadra aunque no sepa
+  señalar qué. Menos opciones, decisiones consistentes.
+*/
+.section-y {
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+}
+
+.section-y-lg {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+}
+
+@media (min-width: 768px) {
+  .section-y {
+    padding-top: 6rem;
+    padding-bottom: 6rem;
+  }
+
+  .section-y-lg {
+    padding-top: 7.5rem;
+    padding-bottom: 7.5rem;
+  }
+}
+
 .container-kdb {
   width: 100%;
   max-width: 1600px;

@@ -144,7 +144,7 @@ export default function CarritoPage() {
   }
 
   return (
-    <div className="container-kdb py-12 md:py-16">
+    <div className="container-kdb py-14 md:py-20">
       <div className="text-center">
         <h1 className="text-section text-ink">
           {checkout ? 'Finalizar pedido' : 'Tu carrito'}

@@ -11,7 +11,7 @@ const STEPS = [
 
 export default function PedidosPage() {
   return (
-    <div className="container-kdb py-12 md:py-20">
+    <div className="container-kdb py-14 md:py-20">
       <div className="mx-auto max-w-xl text-center">
         <h1 className="text-section text-ink">Hacer un pedido</h1>
         <p className="mt-5 text-sm leading-relaxed text-ink-muted">

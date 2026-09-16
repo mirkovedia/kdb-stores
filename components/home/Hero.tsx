@@ -1,6 +1,14 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
+/**
+ * Imagen de portada. Cambiarla es cambiar esta constante: el resto del hero
+ * (encuadre, degradados y posición del texto) funciona con cualquier foto que
+ * tenga el sujeto en la mitad superior y una zona más oscura abajo.
+ */
+const HERO_IMAGE =
+  'https://images.unsplash.com/photo-1760302318631-a8d342cd4951?w=2400&q=85';
+
 /*
   Hero editorial: una imagen a sangre, un título y dos acciones.
 
@@ -14,27 +22,35 @@ import Link from 'next/link';
 */
 export function Hero() {
   return (
-    <section className="relative flex h-[min(78vh,860px)] min-h-[30rem] items-end overflow-hidden bg-surface-muted">
+    <section className="relative flex h-[min(78vh,860px)] min-h-[30rem] items-end overflow-hidden bg-ink">
+      {/*
+        El encuadre cambia por breakpoint: la foto es vertical y el hero es
+        panorámico, así que con un object-center plano en desktop se vería
+        solo la franja media y se perderían las estanterías, que son las que
+        dan profundidad a la escena.
+      */}
       <Image
-        src="https://images.unsplash.com/photo-1556906781-9a412961c28c?w=2000&q=85"
+        src={HERO_IMAGE}
         alt=""
         aria-hidden="true"
         fill
         priority
-        className="object-cover object-center"
         sizes="100vw"
-        unoptimized
+        className="object-cover object-[center_45%] md:object-[center_38%]"
       />
 
       {/*
-        Degradado solo desde abajo: la foto queda limpia arriba y el texto
-        conserva contraste donde se apoya.
+        Dos degradados en vez de un velo plano: uno vertical que ancla el
+        bloque de texto y otro horizontal que le da base al título aunque la
+        foto sea clara justo ahí. La imagen se mantiene limpia en la parte
+        superior, que es donde se ve el producto.
       */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent" />
 
-      <div className="container-kdb relative z-10 pb-14 md:pb-20">
+      <div className="container-kdb relative z-10 pb-16 md:pb-24">
         <div className="max-w-2xl animate-fade-in-up">
-          <p className="text-eyebrow text-white/80">Nueva temporada</p>
+          <p className="text-eyebrow text-white/75">Nueva temporada</p>
 
           <h1 className="text-display mt-5 text-white">
             Kicks
@@ -42,7 +58,7 @@ export function Hero() {
             D&apos;Barrio
           </h1>
 
-          <p className="mt-6 max-w-md text-base leading-relaxed text-white/90">
+          <p className="mt-6 max-w-md text-base leading-relaxed text-white/85">
             Sneakers y streetwear originales, seleccionados uno por uno y
             entregados en todo el Perú.
           </p>
@@ -56,7 +72,7 @@ export function Hero() {
             </Link>
             <Link
               href="/pedidos"
-              className="inline-flex h-14 items-center justify-center border border-white/70 px-10 text-xs font-medium uppercase tracking-[0.2em] text-white transition-colors duration-200 hover:border-white hover:bg-white hover:text-ink"
+              className="inline-flex h-14 items-center justify-center border border-white/60 px-10 text-xs font-medium uppercase tracking-[0.2em] text-white backdrop-blur-[2px] transition-colors duration-200 hover:border-white hover:bg-white hover:text-ink"
             >
               Hacer un pedido
             </Link>

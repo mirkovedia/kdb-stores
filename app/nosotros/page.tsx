@@ -59,7 +59,7 @@ export default function NosotrosPage() {
   return (
     <div>
       {/* Portada */}
-      <section className="container-kdb py-16 text-center md:py-24">
+      <section className="container-kdb section-y text-center">
         <p className="text-eyebrow text-ink-muted">Nuestra conexión</p>
         <h1 className="text-display mx-auto mt-6 max-w-3xl text-ink">
           Somos KDB
@@ -86,7 +86,7 @@ export default function NosotrosPage() {
       </section>
 
       {/* Historia y valores */}
-      <section className="container-kdb py-16 md:py-24">
+      <section className="container-kdb section-y">
         <div className="grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-20">
           <div>
             <h2 className="text-section text-ink">Nuestra historia</h2>
@@ -131,7 +131,7 @@ export default function NosotrosPage() {
       </section>
 
       {/* Garantías */}
-      <section className="border-t border-line bg-surface-muted py-16 md:py-24">
+      <section className="section-y border-t border-line bg-surface-muted">
         <div className="container-kdb">
           <SectionTitle
             title="Nuestras garantías"
@@ -153,7 +153,7 @@ export default function NosotrosPage() {
       </section>
 
       {/* Medios de pago */}
-      <section className="container-kdb py-16 md:py-24">
+      <section className="container-kdb section-y">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-16">
           <div>
             <h2 className="text-section text-ink">Medios de pago</h2>
@@ -176,7 +176,7 @@ export default function NosotrosPage() {
 
       {/* Cierre */}
       <section className="border-t border-line">
-        <div className="container-kdb py-16 text-center md:py-24">
+        <div className="container-kdb section-y text-center">
           <h2 className="text-section text-ink">¿Listo para tu próximo par?</h2>
           <p className="mx-auto mt-5 max-w-md text-sm leading-relaxed text-ink-muted">
             Explorá el catálogo actual o escribinos para cotizar ese modelo que

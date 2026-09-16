@@ -35,7 +35,7 @@ const STEPS: Step[] = [
 */
 export function HowItWorks() {
   return (
-    <section id="como-funciona" className="bg-surface-muted py-16 md:py-24">
+    <section id="como-funciona" className="section-y bg-surface-muted">
       <div className="container-kdb">
         <SectionTitle
           title="Cómo funciona"
