@@ -32,8 +32,8 @@ const VALUES = [
 
 const GUARANTEES = [
   {
-    title: 'Originales 100%',
-    desc: 'Nuestros productos vienen de tiendas oficiales y distribuidores autorizados en Nueva York y Lima.',
+    title: 'Showroom en Lima',
+    desc: 'Podés ver y probar los productos en persona antes de decidir. Las visitas son con cita previa, coordinada por WhatsApp.',
   },
   {
     title: 'Seguimiento en tiempo real',
@@ -46,9 +46,29 @@ const GUARANTEES = [
 ];
 
 const PAYMENTS = [
+  { name: 'Contra entrega', desc: 'Pagás cuando recibís tu pedido' },
   { name: 'Yape / Plin', desc: 'Pago inmediato sin comisiones' },
   { name: 'Transferencia', desc: 'BCP, BBVA, Interbank y Scotiabank' },
-  { name: 'Efectivo', desc: 'Previa coordinación, en Lima' },
+];
+
+/*
+  El proceso explicado paso a paso. Decir "somos originales" es una promesa
+  que cualquiera puede escribir; mostrar de dónde viene cada producto es
+  verificable, y es lo que realmente construye confianza.
+*/
+const PROCESS = [
+  {
+    title: 'Dónde compramos',
+    desc: 'Trabajamos con tiendas oficiales y distribuidores autorizados en Nueva York y Lima. No compramos en mercados de reventa, así que no hay intermediarios entre la marca y vos.',
+  },
+  {
+    title: 'Cómo lo traemos',
+    desc: 'Nuestros personal shoppers en Nueva York adquieren el producto y lo preparan para el viaje. Te compartimos el detalle de cada etapa por WhatsApp.',
+  },
+  {
+    title: 'Cómo lo recibís',
+    desc: 'Coordinamos el envío a cualquier ciudad del Perú, o podés retirarlo en nuestro showroom de Lima con cita previa. Podés pagar contra entrega.',
+  },
 ];
 
 export default function NosotrosPage() {
@@ -127,6 +147,31 @@ export default function NosotrosPage() {
               ))}
             </ol>
           </div>
+        </div>
+      </section>
+
+      {/* Cómo trabajamos */}
+      <section className="section-y border-t border-line">
+        <div className="container-kdb">
+          <SectionTitle
+            title="Cómo trabajamos"
+            subtitle="De dónde viene cada producto y cómo llega hasta vos."
+            align="center"
+          />
+
+          <ol className="mx-auto grid max-w-4xl grid-cols-1 gap-10 md:grid-cols-3 md:gap-8">
+            {PROCESS.map((step, i) => (
+              <li key={step.title} className="border-t border-ink pt-6">
+                <span className="text-eyebrow text-ink-subtle">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <h3 className="text-product mt-4 text-ink">{step.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-ink-muted">
+                  {step.desc}
+                </p>
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
 

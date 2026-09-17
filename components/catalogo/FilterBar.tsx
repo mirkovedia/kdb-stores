@@ -1,13 +1,18 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { ChevronDown, X, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { ProductFilters } from '@/types';
+import type { ProductFilters, Producto } from '@/types';
 
 interface FilterBarProps {
   filters: ProductFilters;
   onChange: (filters: ProductFilters) => void;
+  /**
+   * Catálogo completo sin filtrar, solo para los contadores. Llega vacío
+   * mientras carga, y en ese caso los contadores no se muestran.
+   */
+  catalog?: Producto[];
 }
 
 const CATEGORIES = [
@@ -43,7 +48,7 @@ const SORT_OPTIONS = [
 const TRIGGER_BASE =
   'flex h-10 items-center gap-2 border px-4 text-nav transition-colors';
 
-export function FilterBar({ filters, onChange }: FilterBarProps) {
+export function FilterBar({ filters, onChange, catalog = [] }: FilterBarProps) {
   const [brandDropdownOpen, setBrandDropdownOpen] = useState(false);
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const [showSizes, setShowSizes] = useState(false);
@@ -51,6 +56,31 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
 
   // Las marcas seleccionadas se derivan de la URL (sin estado duplicado).
   const selectedBrands = filters.marca ? filters.marca.split(',') : [];
+
+  /*
+    Contadores sobre el catálogo completo: le dicen al cliente cuántos
+    productos va a encontrar antes de hacer clic. Se calculan una sola vez
+    por catálogo, no en cada render.
+  */
+  const counts = useMemo(() => {
+    const byCategory: Record<string, number> = {};
+    const byBrand: Record<string, number> = {};
+    let available = 0;
+
+    for (const p of catalog) {
+      const catSlug = p.categoria?.slug;
+      if (catSlug) byCategory[catSlug] = (byCategory[catSlug] ?? 0) + 1;
+
+      const brandSlug = p.marca?.slug;
+      if (brandSlug) byBrand[brandSlug] = (byBrand[brandSlug] ?? 0) + 1;
+
+      if (p.disponible) available += 1;
+    }
+
+    return { byCategory, byBrand, available, total: catalog.length };
+  }, [catalog]);
+
+  const hasCounts = catalog.length > 0;
 
   const brandRef = useRef<HTMLDivElement>(null);
   const sortRef = useRef<HTMLDivElement>(null);
@@ -145,6 +175,10 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
         <div className="scrollbar-none flex items-center gap-7 overflow-x-auto">
           {CATEGORIES.map((cat) => {
             const active = (filters.categoria || '') === cat.value;
+            const count = cat.value
+              ? counts.byCategory[cat.value]
+              : counts.total;
+
             return (
               <button
                 key={cat.value}
@@ -158,6 +192,9 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
                 )}
               >
                 {cat.label}
+                {hasCounts && count !== undefined && (
+                  <span className="ml-1.5 text-ink-subtle">({count})</span>
+                )}
               </button>
             );
           })}
@@ -194,6 +231,8 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
               <div className="absolute left-0 top-full z-50 mt-1 w-60 border border-line bg-surface">
                 {BRANDS.map((brand) => {
                   const checked = selectedBrands.includes(brand.slug);
+                  const count = counts.byBrand[brand.slug];
+
                   return (
                     <button
                       key={brand.slug}
@@ -217,7 +256,12 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
                           </svg>
                         )}
                       </span>
-                      {brand.name}
+
+                      <span className="flex-1">{brand.name}</span>
+
+                      {hasCounts && (
+                        <span className="text-ink-subtle">{count ?? 0}</span>
+                      )}
                     </button>
                   );
                 })}
@@ -268,6 +312,15 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
             )}
           >
             Solo disponibles
+            {hasCounts && (
+              <span
+                className={cn(
+                  filters.soloDisponibles ? 'text-ink-inverse/70' : 'text-ink-subtle',
+                )}
+              >
+                {counts.available}
+              </span>
+            )}
           </button>
 
           <div className="flex-1" />

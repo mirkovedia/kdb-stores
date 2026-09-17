@@ -24,6 +24,16 @@ function CatalogoContent() {
 
   const { products, loading } = useProducts(filters);
 
+  /*
+    Segundo pedido sin filtros, solo para los contadores de la barra.
+
+    Contar sobre `products` no serviría: esa lista ya viene filtrada, así que
+    "Nike (12)" mostraría el total actual en vez de cuántos Nike hay. Como la
+    URL es siempre la misma, el navegador la resuelve desde caché después de
+    la primera carga.
+  */
+  const { products: allProducts } = useProducts({});
+
   const handleChange = useCallback(
     (next: ProductFilters) => {
       const params = new URLSearchParams();
@@ -61,7 +71,11 @@ function CatalogoContent() {
       </div>
 
       {/* Filtros */}
-      <FilterBar filters={filters} onChange={handleChange} />
+      <FilterBar
+        filters={filters}
+        onChange={handleChange}
+        catalog={allProducts}
+      />
 
       {/* Grilla */}
       <div className="container-kdb section-y">

@@ -1,6 +1,7 @@
 import { Hero } from '@/components/home/Hero';
 import { FeaturedProducts } from '@/components/home/FeaturedProducts';
 import { CategoriesGrid } from '@/components/home/CategoriesGrid';
+import { TrustStrip } from '@/components/home/TrustStrip';
 import { HowItWorks } from '@/components/home/HowItWorks';
 
 export default function Home() {
@@ -24,6 +25,9 @@ export default function Home() {
         source="destacado"
         limit={4}
       />
+
+      {/* Primero el cliente ve qué vendemos; después, por qué comprarnos. */}
+      <TrustStrip />
 
       <HowItWorks />
     </>

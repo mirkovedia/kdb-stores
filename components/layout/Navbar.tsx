@@ -15,6 +15,20 @@ const CATEGORIES = [
   { name: 'Accesorios', slug: 'accesorios' },
 ] as const;
 
+/*
+  Mismas marcas que el filtro del catálogo: así cualquier enlace de acá
+  siempre cae en resultados válidos. Buscar por marca es como la gente busca
+  sneakers, y hasta ahora solo se podía desde los filtros.
+*/
+const BRANDS = [
+  { name: 'Jordan', slug: 'jordan' },
+  { name: 'Nike', slug: 'nike' },
+  { name: 'Adidas', slug: 'adidas' },
+  { name: 'New Balance', slug: 'new-balance' },
+  { name: 'Bape', slug: 'bape' },
+  { name: 'Off-White', slug: 'off-white' },
+] as const;
+
 const NAV_LINKS = [
   { label: 'Catálogo', href: '/catalogo', categories: true },
   { label: 'Pedidos', href: '/pedidos', categories: false },
@@ -92,23 +106,46 @@ export function Navbar() {
                       {link.label}
                     </Link>
 
-                    {/* Desplegable: aparece en hover, sin animación de escala. */}
-                    <div className="invisible absolute left-0 top-full z-50 min-w-[13rem] border border-line bg-surface pt-0 opacity-0 transition-opacity duration-200 group-hover:visible group-hover:opacity-100">
-                      <Link
-                        href="/catalogo"
-                        className="block border-b border-line px-5 py-3 text-nav text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink"
-                      >
-                        Ver todo
-                      </Link>
-                      {CATEGORIES.map((cat) => (
-                        <Link
-                          key={cat.slug}
-                          href={`/catalogo?categoria=${cat.slug}`}
-                          className="block px-5 py-3 text-nav text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink"
-                        >
-                          {cat.name}
-                        </Link>
-                      ))}
+                    {/*
+                      Desplegable en dos columnas: categorías y marcas. En una
+                      sola columna serían once ítems seguidos, demasiado para
+                      escanear. Anclado a la izquierda para no desbordar la
+                      ventana en pantallas chicas.
+                    */}
+                    <div className="invisible absolute left-0 top-full z-50 flex gap-10 border border-line bg-surface px-6 py-5 opacity-0 transition-opacity duration-200 group-hover:visible group-hover:opacity-100">
+                      <div className="min-w-[8rem]">
+                        <p className="text-eyebrow mb-4 text-ink-subtle">
+                          Categorías
+                        </p>
+                        <div className="flex flex-col gap-3">
+                          {CATEGORIES.map((cat) => (
+                            <Link
+                              key={cat.slug}
+                              href={`/catalogo?categoria=${cat.slug}`}
+                              className="text-nav whitespace-nowrap text-ink-muted transition-colors hover:text-ink"
+                            >
+                              {cat.name}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="min-w-[8rem]">
+                        <p className="text-eyebrow mb-4 text-ink-subtle">
+                          Marcas
+                        </p>
+                        <div className="flex flex-col gap-3">
+                          {BRANDS.map((brand) => (
+                            <Link
+                              key={brand.slug}
+                              href={`/catalogo?marca=${brand.slug}`}
+                              className="text-nav whitespace-nowrap text-ink-muted transition-colors hover:text-ink"
+                            >
+                              {brand.name}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ) : (
@@ -196,22 +233,40 @@ export function Navbar() {
                   </button>
 
                   {mobileCatalogOpen && (
-                    <div className="bg-surface-muted">
+                    <div className="bg-surface-muted py-2">
                       <Link
                         href="/catalogo"
                         onClick={() => setMobileOpen(false)}
-                        className="block px-8 py-4 text-nav text-ink-muted"
+                        className="block px-8 py-3.5 text-nav text-ink"
                       >
                         Ver todo
                       </Link>
+
+                      <p className="text-eyebrow px-8 pb-2 pt-4 text-ink-subtle">
+                        Categorías
+                      </p>
                       {CATEGORIES.map((cat) => (
                         <Link
                           key={cat.slug}
                           href={`/catalogo?categoria=${cat.slug}`}
                           onClick={() => setMobileOpen(false)}
-                          className="block px-8 py-4 text-nav text-ink-muted"
+                          className="block px-8 py-3.5 text-nav text-ink-muted"
                         >
                           {cat.name}
+                        </Link>
+                      ))}
+
+                      <p className="text-eyebrow px-8 pb-2 pt-4 text-ink-subtle">
+                        Marcas
+                      </p>
+                      {BRANDS.map((brand) => (
+                        <Link
+                          key={brand.slug}
+                          href={`/catalogo?marca=${brand.slug}`}
+                          onClick={() => setMobileOpen(false)}
+                          className="block px-8 py-3.5 text-nav text-ink-muted"
+                        >
+                          {brand.name}
                         </Link>
                       ))}
                     </div>
