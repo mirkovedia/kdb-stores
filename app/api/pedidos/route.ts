@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { pedidoSchema, checkoutSchema } from '@/lib/validations';
 import { createClient } from '@/lib/supabase/server';
+import { rateLimit, getClientIp } from '@/lib/rateLimit';
 import {
   resend,
   FROM_EMAIL,
@@ -53,6 +54,20 @@ async function sendEmails(args: {
 
 export async function POST(request: Request) {
   try {
+    /*
+      Crear un pedido escribe varias tablas y dispara dos emails, así que un
+      envío en bucle es costoso. 10 por minuto deja margen para reintentos
+      legítimos —un error de validación, una conexión que se corta— sin
+      permitir el uso automatizado.
+    */
+    const limit = rateLimit(`pedidos:${getClientIp(request)}`, 10, 60_000);
+    if (!limit.ok) {
+      return NextResponse.json(
+        { error: 'Demasiados pedidos seguidos. Esperá un momento.' },
+        { status: 429, headers: { 'Retry-After': String(limit.retryAfter) } },
+      );
+    }
+
     const body = await request.json();
     const supabase = await createClient();
 

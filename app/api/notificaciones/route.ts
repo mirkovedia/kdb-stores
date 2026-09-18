@@ -1,10 +1,35 @@
 import { NextResponse } from 'next/server';
 import { notifyStockSchema } from '@/lib/validations';
 import { createClient } from '@/lib/supabase/server';
+import { rateLimit, getClientIp } from '@/lib/rateLimit';
+
+/*
+  Este endpoint es público, escribe en la base y alimenta envíos de email, así
+  que es el más expuesto del sitio: sin límite, un script puede llenar la
+  tabla de suscripciones y quemar la cuota de Resend en minutos.
+
+  5 por minuto es holgado para una persona —suscribirse a varios productos
+  seguidos— y corta en seco el uso automatizado.
+*/
+const LIMIT = 5;
+const WINDOW_MS = 60_000;
 
 // POST /api/notificaciones — suscribirse al aviso de restock de un producto
 export async function POST(request: Request) {
   try {
+    const limit = rateLimit(
+      `notificaciones:${getClientIp(request)}`,
+      LIMIT,
+      WINDOW_MS,
+    );
+
+    if (!limit.ok) {
+      return NextResponse.json(
+        { error: 'Demasiadas solicitudes. Intentá de nuevo en un momento.' },
+        { status: 429, headers: { 'Retry-After': String(limit.retryAfter) } },
+      );
+    }
+
     const body = await request.json();
     const validation = notifyStockSchema.safeParse(body);
     if (!validation.success) {
