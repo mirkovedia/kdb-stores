@@ -90,3 +90,12 @@ export const PLACEHOLDER_IMAGES = [
   'https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=800',
   'https://images.unsplash.com/photo-1584735175315-9d5df23860e6?w=800',
 ];
+
+/**
+ * URL pública del sitio. Estaba duplicada —con el mismo fallback— en layout,
+ * robots, sitemap y el servicio de email: al cambiar de dominio había que
+ * acordarse de los cuatro. Fuente única para metadata, JSON-LD y enlaces
+ * absolutos de los correos.
+ */
+export const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || 'https://kdb-stores.vercel.app';

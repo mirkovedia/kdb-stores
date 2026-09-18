@@ -6,7 +6,7 @@ import { ProductDetails } from '@/components/producto/ProductDetails';
 import { ProductCard } from '@/components/catalogo/ProductCard';
 import { SectionTitle } from '@/components/ui/SectionTitle';
 import { Button } from '@/components/ui/Button';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, SITE_URL } from '@/lib/utils';
 import { getProductoBySlug, getProductosRelacionados } from '@/lib/productos';
 
 interface ProductPageProps {
@@ -86,11 +86,16 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       : undefined,
     offers: {
       '@type': 'Offer',
+      // La URL canónica le permite a Google desambiguar la oferta cuando el
+      // producto aparece en varias listas del sitio.
+      url: `${SITE_URL}/producto/${product.slug}`,
       priceCurrency: 'PEN',
       price: product.precio,
+      itemCondition: 'https://schema.org/NewCondition',
       availability: product.disponible
         ? 'https://schema.org/InStock'
         : 'https://schema.org/OutOfStock',
+      seller: { '@type': 'Organization', name: 'KDB Stores' },
     },
   };
 

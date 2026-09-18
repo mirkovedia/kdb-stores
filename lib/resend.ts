@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { SITE_URL } from '@/lib/utils';
 
 export const resend = new Resend(process.env.RESEND_API_KEY || 're_build_placeholder');
 
@@ -144,7 +145,7 @@ export function generateRestockHTML(data: {
   slug: string;
   imagen_url?: string | null;
 }): string {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://kdb-stores.vercel.app';
+  const siteUrl = SITE_URL;
   return `
     <!DOCTYPE html>
     <html>

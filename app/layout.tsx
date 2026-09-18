@@ -5,6 +5,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { WhatsAppButton } from "@/components/layout/WhatsAppButton";
 import { CartProvider } from "@/context/CartContext";
+import { SITE_URL } from "@/lib/utils";
 
 // Familia única del sitio: la jerarquía se construye con peso y tracking.
 const jost = Jost({
@@ -14,8 +15,6 @@ const jost = Jost({
   display: "swap",
 });
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://kdb-stores.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -59,9 +58,37 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  /*
+    JSON-LD de la tienda como entidad. El de la ficha de producto responde
+    "qué es esto"; este responde "quién vende". Google los combina, y
+    `areaServed` le dice que operamos en Perú, lo que ayuda en búsquedas
+    locales frente a tiendas que no lo declaran.
+  */
+  const orgJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Store",
+    name: "KDB Stores",
+    alternateName: "KicksD'Barrio",
+    description:
+      "Sneakers y streetwear originales importados desde Nueva York y Lima.",
+    url: SITE_URL,
+    areaServed: { "@type": "Country", name: "PE" },
+    currenciesAccepted: "PEN",
+    paymentAccepted: "Yape, Plin, Transferencia, Contra entrega",
+    sameAs: [
+      process.env.NEXT_PUBLIC_INSTAGRAM_URL ||
+        "https://www.instagram.com/kdb.stores",
+      "https://www.tiktok.com/@kdb.pee",
+    ],
+  };
+
   return (
     <html lang="es" className={`${jost.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-surface text-ink">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+        />
         <CartProvider>
           <Navbar />
           <main className="flex-1">{children}</main>

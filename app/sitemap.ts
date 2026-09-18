@@ -1,8 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { getProductos } from '@/lib/productos';
-
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || 'https://kdb-stores.vercel.app';
+import { SITE_URL } from '@/lib/utils';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
