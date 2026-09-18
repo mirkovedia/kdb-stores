@@ -30,13 +30,24 @@ export function FeaturedProducts({
   source = 'destacado',
   limit = 4,
 }: FeaturedProductsProps) {
-  const { products, loading } = useProducts();
+  const { products, loading, error } = useProducts();
 
   const featured = products.filter((p) => p.destacado);
   // Si la BD no tiene destacados marcados, se cae a los primeros del listado.
   const pool =
     source === 'destacado' && featured.length > 0 ? featured : products;
   const displayProducts = pool.slice(0, limit);
+
+  /*
+    Degradación elegante: si esta sección falla o no tiene productos, se
+    oculta en lugar de dejar un título con una grilla vacía debajo. A
+    diferencia del catálogo —donde el error merece explicación y reintento
+    porque es el motivo de la visita—, acá es un bloque secundario y no debe
+    arruinar la portada.
+  */
+  if (!loading && (error || displayProducts.length === 0)) {
+    return null;
+  }
 
   // La cáscara (título + grilla) es la misma con datos o cargando: solo cambia
   // el contenido de las celdas.

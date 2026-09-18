@@ -22,7 +22,7 @@ function CatalogoContent() {
     ordenar: (searchParams.get('ordenar') as ProductFilters['ordenar']) || undefined,
   };
 
-  const { products, loading } = useProducts(filters);
+  const { products, loading, error, refetch } = useProducts(filters);
 
   /*
     Segundo pedido sin filtros, solo para los contadores de la barra.
@@ -79,7 +79,12 @@ function CatalogoContent() {
 
       {/* Grilla */}
       <div className="container-kdb section-y">
-        <ProductGrid products={products} loading={loading} />
+        <ProductGrid
+          products={products}
+          loading={loading}
+          error={error}
+          onRetry={refetch}
+        />
       </div>
     </div>
   );

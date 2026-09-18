@@ -4,6 +4,14 @@ import type { Producto } from '@/types';
 interface ProductGridProps {
   products: Producto[];
   loading: boolean;
+  /**
+   * Mensaje de error si la petición falló. Distinguirlo del caso "sin
+   * resultados" importa: sin esto, una API caída mostraba "No encontramos
+   * productos" y el cliente creía que la tienda estaba vacía.
+   */
+  error?: string | null;
+  /** Reintenta la carga. Se muestra como acción en el estado de error. */
+  onRetry?: () => void;
   /** Cantidad de celdas del esqueleto mientras carga. */
   skeletonCount?: number;
 }
@@ -30,6 +38,8 @@ const GRID_CLASSES =
 export function ProductGrid({
   products,
   loading,
+  error = null,
+  onRetry,
   skeletonCount = 8,
 }: ProductGridProps) {
   if (loading) {
@@ -38,6 +48,33 @@ export function ProductGrid({
         {Array.from({ length: skeletonCount }).map((_, i) => (
           <SkeletonCard key={i} />
         ))}
+      </div>
+    );
+  }
+
+  /*
+    El error se evalúa antes del caso vacío: si la petición falló, no hay que
+    afirmar que no existen productos. Son dos situaciones distintas y la
+    salida del cliente también.
+  */
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center border-t border-line py-28 text-center">
+        <h3 className="text-product text-ink">No pudimos cargar el catálogo</h3>
+        <p className="mt-4 max-w-sm text-sm leading-relaxed text-ink-muted">
+          Puede ser un problema momentáneo de conexión. Probá de nuevo en unos
+          segundos.
+        </p>
+
+        {onRetry && (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="btn-solid mt-8 h-11 px-7"
+          >
+            Reintentar
+          </button>
+        )}
       </div>
     );
   }
