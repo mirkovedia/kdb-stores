@@ -62,7 +62,6 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
                 isSoldOut && 'opacity-60',
               )}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              unoptimized
             />
 
             {secondImage && (
@@ -73,7 +72,6 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
                 fill
                 className="object-cover opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100"
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                unoptimized
               />
             )}
           </div>

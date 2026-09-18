@@ -43,7 +43,6 @@ export function ProductGallery({ imagenes, nombre }: ProductGalleryProps) {
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 55vw"
               priority={index === 0}
-              unoptimized
             />
           </div>
         ))}
@@ -59,7 +58,6 @@ export function ProductGallery({ imagenes, nombre }: ProductGalleryProps) {
             className="object-cover"
             sizes="100vw"
             priority
-            unoptimized
           />
         </div>
 
@@ -84,7 +82,6 @@ export function ProductGallery({ imagenes, nombre }: ProductGalleryProps) {
                   fill
                   className="object-cover"
                   sizes="64px"
-                  unoptimized
                 />
               </button>
             ))}

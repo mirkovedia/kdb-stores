@@ -53,7 +53,6 @@ export function CategoriesGrid() {
                   fill
                   className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
                   sizes="(max-width: 768px) 100vw, 50vw"
-                  unoptimized
                 />
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
