@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ProductGallery } from '@/components/producto/ProductGallery';
 import { ProductPurchasePanel } from '@/components/producto/ProductPurchasePanel';
+import { ProductDetails } from '@/components/producto/ProductDetails';
 import { ProductCard } from '@/components/catalogo/ProductCard';
 import { SectionTitle } from '@/components/ui/SectionTitle';
 import { Button } from '@/components/ui/Button';
@@ -116,8 +117,20 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           <span className="truncate text-ink-muted">{product.nombre}</span>
         </nav>
 
-        {/* Galería + compra */}
-        <div className="mb-24 grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-16">
+        {/*
+          Galería + compra + detalles.
+
+          El acordeón se renderiza una sola vez y se reubica con `order`: en
+          desktop queda bajo la galería (columna ancha, texto legible) y en
+          móvil después del panel de compra, que es el orden correcto —
+          primero comprar, después leer el detalle.
+        */}
+        {/*
+          Galería + compra. `items-start` evita que la columna corta (el panel
+          de compra de un producto agotado, por ejemplo) se estire y deje
+          cientos de píxeles vacíos debajo.
+        */}
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:items-start lg:gap-16">
           <div className="lg:col-span-7">
             <ProductGallery imagenes={product.imagenes} nombre={product.nombre} />
           </div>
@@ -125,6 +138,15 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           <div className="lg:col-span-5">
             <ProductPurchasePanel product={product} />
           </div>
+        </div>
+
+        {/*
+          El acordeón va fuera de la grilla y limitado en ancho: dentro de una
+          columna de 7/12 el texto ya es cómodo, y así se renderiza una sola
+          vez en lugar de duplicarse por breakpoint.
+        */}
+        <div className="mb-24 max-w-3xl">
+          <ProductDetails product={product} />
         </div>
 
         {/* Relacionados */}
